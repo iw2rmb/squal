@@ -16,14 +16,14 @@ Legend: [ ] todo, [x] done.
 
 ## Phase 1 Execution Steps
 
-- [ ] Create roadmap scaffold for SQL phase work — Establish canonical location for phase decomposition docs.
+- [x] Create roadmap scaffold for SQL phase work — Establish canonical location for phase decomposition docs.
   - Repository: `sql`
   - Component: `roadmap/`
   - Scope: Create `roadmap/sql/` and store this phase file as `roadmap/sql/phase-1-parser-contracts.md`.
   - Snippets: `mkdir -p roadmap/sql`
   - Tests: `test -f roadmap/sql/phase-1-parser-contracts.md` — file exists at expected path.
 
-- [ ] Add shared enum ownership in `core` — Break parser DTO dependency on `mill/internal/mill/types`.
+- [x] Add shared enum ownership in `core` — Break parser DTO dependency on `mill/internal/mill/types`.
   - Repository: `sql`
   - Component: `core`
   - Scope: Add `core/sql_types.go` with `JoinType` and `CompareOp` enums (plus constants) matching current semantics from `../../mill/internal/mill/types/sql.go`.
