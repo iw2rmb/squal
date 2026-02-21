@@ -103,7 +103,7 @@ Legend: [ ] todo, [x] done.
     - `go test ./internal/mill/routing -run 'Test(NewQueryRouter|RouteQuery)'` — routing metadata logic unchanged.
     - `go test ./internal/mill/cache -run 'Test(NewManager|WithParser|Manager_)'` — fingerprint/metadata cache paths unchanged.
 
-- [ ] Phase 1 acceptance gate — Mark phase complete only when extraction and migration both satisfy contract parity.
+- [x] Phase 1 acceptance gate — Mark phase complete only when extraction and migration both satisfy contract parity.
   - Repository: `sql`, `mill`
   - Component: release readiness
   - Scope: Phase is complete only if all conditions hold:
