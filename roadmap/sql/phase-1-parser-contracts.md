@@ -44,7 +44,7 @@ Legend: [ ] todo, [x] done.
   - Snippets: `import "github.com/iw2rmb/sql/core"`; `type JoinCondition struct { Type core.JoinType ... }`
   - Tests: `go test ./parser/... -run Test.*Types` — DTO compile checks and serialization expectations pass.
 
-- [ ] Extract interval parsing helpers into `parser` module — Preserve sliding-window duration semantics.
+- [x] Extract interval parsing helpers into `parser` module — Preserve sliding-window duration semantics.
   - Repository: `sql`
   - Component: `parser`
   - Scope: Add `parser/interval_parser.go` by porting from `../../mill/internal/mill/parser/interval_parser.go` without behavior changes.
