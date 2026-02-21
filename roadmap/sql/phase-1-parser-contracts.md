@@ -69,7 +69,7 @@ Legend: [ ] todo, [x] done.
   - Snippets: `rg -n "mill/internal" core parser`
   - Tests: `rg -n "mill/internal" core parser` — returns no matches.
 
-- [ ] Migrate `mill` parser imports to shared module — Switch consumers from internal contracts to shared contracts.
+- [x] Migrate `mill` parser imports to shared module — Switch consumers from internal contracts to shared contracts.
   - Repository: `mill`
   - Component: all parser consumers
   - Scope: Replace `github.com/iw2rmb/mill/internal/mill/parser` imports with `github.com/iw2rmb/sql/parser` across parser users (current baseline: 141 importing files). Keep behavior unchanged.
