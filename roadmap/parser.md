@@ -20,7 +20,7 @@ Legend: [ ] todo, [x] done.
   - Snippets: `go test ./core/... ./parser/...`
   - Tests: `go test ./core/... ./parser/...` — baseline contract packages are green before migration.
 
-- [ ] Create `parserpg` package skeleton — Isolate PostgreSQL parser implementation and CGO boundary in this repository.
+- [x] Create `parserpg` package skeleton — Isolate PostgreSQL parser implementation and CGO boundary in this repository.
   - Repository: `sql`
   - Component: `parserpg`
   - Scope: Add package layout, build tags, CGO integration stubs, and module/package wiring needed for parser implementation files.
