@@ -50,45 +50,45 @@ Import rule:
 
 Top-level package split:
 
-1. `sqlcore`
+1. `core`
 - neutral contracts and shared data model
 - no parser backend
 - no CGO
 
-2. `sqlparser`
+2. `parser`
 - parser interfaces and analysis DTOs
 - no CGO
 - no provider-specific runtime logic
 
-3. `sqlparserpg`
+3. `parserpg`
 - PostgreSQL parser implementation via `pg_query`
 - only package with CGO
 - no app/runtime orchestration logic
 
-4. `sqllst`
+4. `lst`
 - SQL LST/CST representation
 - capture taxonomy for deterministic query/traverse/mutate
 - lossless emit guarantees for untouched ranges
 
-5. `sqlcomplete`
+5. `complete`
 - completion classification/ranking
 - deterministic edit planning
 - join path suggestions (including multi-column FK)
 
 Allowed dependency direction:
-- `sqlcore` <- `sqlparser`, `sqllst`, `sqlcomplete`
-- `sqlparser` <- `sqlparserpg`, `sqllst`, `sqlcomplete`
-- `sqllst` <- `sqlcomplete`
-- `sqlparserpg` must not import `sqllst` or `sqlcomplete`
+- `core` <- `parser`, `lst`, `complete`
+- `parser` <- `parserpg`, `lst`, `complete`
+- `lst` <- `complete`
+- `parserpg` must not import `lst` or `complete`
 
 ## Module And Versioning Strategy
 
 Use separate Go modules per package boundary for clear release and consumption:
-- `sqlcore/go.mod`
-- `sqlparser/go.mod`
-- `sqlparserpg/go.mod`
-- `sqllst/go.mod`
-- `sqlcomplete/go.mod`
+- `core/go.mod`
+- `parser/go.mod`
+- `parserpg/go.mod`
+- `lst/go.mod`
+- `complete/go.mod`
 
 Version policy:
 - semver tags per module
@@ -127,13 +127,13 @@ Aster package boundaries:
 
 ## Mill-facing requirements
 
-- parser contracts currently in `mill/internal` must be consumable through `sqlparser`
-- PostgreSQL parser features migrate into `sqlparserpg` without decomposition regressions
+- parser contracts currently in `mill/internal` must be consumable through `parser`
+- PostgreSQL parser features migrate into `parserpg` without decomposition regressions
 - normalization/fingerprinting must remain reusable from shared packages
 
 ## API Contracts
 
-## `sqlcore`
+## `core`
 
 Must define canonical DTOs for:
 - `Span`, `TextEdit`, `TextChangeSet`
@@ -141,21 +141,21 @@ Must define canonical DTOs for:
 - catalog graph (`Table`, `Column`, FK edges incl. composite keys)
 - query context and scoring metadata
 
-## `sqlparser`
+## `parser`
 
 Must define:
 - parser interface (`Parse`, metadata extraction, normalization/fingerprint)
 - analysis DTOs (joins, group-by, distinct, aggregates, temporal/sliding windows, json-path)
 - parse diagnostics model with stable fields
 
-## `sqllst`
+## `lst`
 
 Must define:
 - SQL LST node model with stable node IDs
 - capture schema and kind registry
 - emit API with lossless roundtrip guarantees for untouched spans
 
-## `sqlcomplete`
+## `complete`
 
 Must define:
 - completion request context input
@@ -213,7 +213,7 @@ Constraint:
 
 - parity cases across `aster` adapter and SQL live service
 - crash/fallback behavior for completion providers
-- CGO boundary behavior for `sqlparserpg`
+- CGO boundary behavior for `parserpg`
 
 ## Golden tests
 
@@ -231,10 +231,10 @@ Aster CI consumes released SQL module versions; it does not build SQL parser int
 
 ## Migration Plan
 
-1. Extract parser contracts from `mill/internal` into `sqlparser`.
-2. Port PostgreSQL parser implementation to `sqlparserpg` with test parity.
-3. Implement `sqllst` node/capture schema and lossless emit tests.
-4. Implement `sqlcomplete` with deterministic edits and fallback-oriented behavior.
+1. Extract parser contracts from `mill/internal` into `parser`.
+2. Port PostgreSQL parser implementation to `parserpg` with test parity.
+3. Implement `lst` node/capture schema and lossless emit tests.
+4. Implement `complete` with deterministic edits and fallback-oriented behavior.
 5. Integrate `cmd/aster-adapter-sql` in Aster using released SQL modules.
 6. Integrate `cow` completion stack with SQL modules and fallback policies.
 7. Migrate `mill` call-sites from internal parser to SQL modules.
@@ -248,4 +248,4 @@ Aster CI consumes released SQL module versions; it does not build SQL parser int
   - Mitigation: shared fixtures and parity integration tests across both tracks.
 
 - Risk: CGO instability impacts consumers.
-  - Mitigation: isolate CGO in `sqlparserpg`; keep parser-neutral contracts in non-CGO modules.
+  - Mitigation: isolate CGO in `parserpg`; keep parser-neutral contracts in non-CGO modules.
