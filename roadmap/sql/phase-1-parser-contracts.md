@@ -51,7 +51,7 @@ Legend: [ ] todo, [x] done.
   - Snippets: `func ParseInterval(expr string) (time.Duration, error)`
   - Tests: `go test ./parser/... -run 'TestParseInterval|FuzzParseInterval'` — interval forms (quoted, cast, make_interval, ISO-8601, negative) remain supported.
 
-- [ ] Port parser contract tests into SQL repo — Lock parity before consumer migration.
+- [x] Port parser contract tests into SQL repo — Lock parity before consumer migration.
   - Repository: `sql`
   - Component: `parser` tests
   - Scope: Port tests from:
