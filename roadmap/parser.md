@@ -4,7 +4,7 @@ Scope: Move PostgreSQL parser implementation from `mill` to this repository unde
 
 Documentation:
 - `research/sql.md`
-- `design/parser.sql`
+- `design/parser.md`
 - `design/sql.md`
 - `roadmap/sql/phase-1-parser-contracts.md`
 - `../../mill/internal/mill/db/postgres/parser_pgquery_*.go`
