@@ -1,0 +1,32 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# Go binaries and build artifacts
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go coverage and profiling
+coverage.out
+cover.out
+*.coverprofile
+*.pprof
+
+# Go workspace and cache-like local outputs
+vendor/
+
+# Editor/temp leftovers
+*.swp
+*.swo
+*~
