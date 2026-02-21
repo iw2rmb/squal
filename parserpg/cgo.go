@@ -17,6 +17,17 @@ func NewPGQueryParser() (*PGQueryParser, error) {
 	return &PGQueryParser{}, nil
 }
 
+// init wires parser.NewTestParser to the CGO-backed PostgreSQL parser.
+func init() {
+	parser.RegisterTestParserFactory(func() parser.Parser {
+		p, err := NewPGQueryParser()
+		if err != nil {
+			panic("parserpg: failed to create PGQueryParser: " + err.Error())
+		}
+		return p
+	})
+}
+
 // Keep a direct symbol reference so pg_query linkage remains part of the CGO build.
 var _ = pgquery.Parse
 

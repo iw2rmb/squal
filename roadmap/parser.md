@@ -34,7 +34,7 @@ Legend: [ ] todo, [x] done.
   - Snippets: `func (p *PGQueryParser) ExtractMetadata(...)`
   - Tests: `CGO_ENABLED=1 go test ./parserpg/...` — core parser behavior compiles and passes parserpg tests.
 
-- [ ] Rebind shared test parser registration to `parserpg` — Preserve current `NewTestParser()` behavior with migrated implementation.
+- [x] Rebind shared test parser registration to `parserpg` — Preserve current `NewTestParser()` behavior with migrated implementation.
   - Repository: `sql`
   - Component: `parser`, `parserpg`
   - Scope: Implement registration path equivalent to `parser_cgo.go` behavior so shared parser factory resolves PG implementation under correct build tags.
