@@ -76,7 +76,7 @@ Legend: [ ] todo, [x] done.
   - Snippets: `import sqlparser "github.com/iw2rmb/sql/parser"`
   - Tests: `go test ./...` (or scoped packages below) — build and parser-dependent tests remain green after import swap.
 
-- [ ] Migrate parser-related enums in `mill` to shared `core` — Remove remaining parser DTO dependency on internal types.
+- [x] Migrate parser-related enums in `mill` to shared `core` — Remove remaining parser DTO dependency on internal types.
   - Repository: `mill`
   - Component: parser DTO call sites + postgres parser implementation
   - Scope: Replace parser-surface usage of `github.com/iw2rmb/mill/internal/mill/types` with `github.com/iw2rmb/sql/core` where it participates in parser DTOs/contracts.
