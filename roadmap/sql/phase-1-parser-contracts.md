@@ -90,18 +90,18 @@ Legend: [ ] todo, [x] done.
   - Snippets: `func init() { parser.RegisterTestParserFactory(...) }` where `parser` import points to shared module
   - Tests: `go test ./internal/mill/db/postgres/...` — parser implementation compiles and tests pass with shared contract types.
 
-- [ ] Validate mill parser integration paths with focused parity tests — Prove no behavioral regressions in key consumers.
+- [x] Validate mill parser integration paths with focused parity tests — Prove no behavioral regressions in key consumers.
   - Repository: `mill`
   - Component: decomposition, routing, cache
   - Scope: Run focused tests that consume parser metadata/fingerprint contracts:
     - `internal/mill/decomposition/parser_integration_test.go`
     - `internal/mill/routing/router_test.go`
     - `internal/mill/cache/manager_test.go`
-  - Snippets: `go test ./internal/mill/decomposition -run ParserIntegration`
+  - Snippets: `CGO_ENABLED=1 go test ./internal/mill/decomposition -run 'Test(ParseSQL|ParsedQuery)'`
   - Tests:
-    - `go test ./internal/mill/decomposition -run ParserIntegration` — parser integration behavior unchanged.
-    - `go test ./internal/mill/routing -run Router` — routing metadata logic unchanged.
-    - `go test ./internal/mill/cache -run Manager` — fingerprint/metadata cache paths unchanged.
+    - `CGO_ENABLED=1 go test ./internal/mill/decomposition -run 'Test(ParseSQL|ParsedQuery)'` — parser integration behavior unchanged.
+    - `go test ./internal/mill/routing -run 'Test(NewQueryRouter|RouteQuery)'` — routing metadata logic unchanged.
+    - `go test ./internal/mill/cache -run 'Test(NewManager|WithParser|Manager_)'` — fingerprint/metadata cache paths unchanged.
 
 - [ ] Phase 1 acceptance gate — Mark phase complete only when extraction and migration both satisfy contract parity.
   - Repository: `sql`, `mill`
