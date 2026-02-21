@@ -62,7 +62,7 @@ Legend: [ ] todo, [x] done.
   - Snippets: `go test ./parser/...`
   - Tests: `go test ./parser/...` — all ported tests pass in `sql` repository.
 
-- [ ] Enforce dependency boundary in shared contracts — Prevent accidental coupling back to `mill/internal`.
+- [x] Enforce dependency boundary in shared contracts — Prevent accidental coupling back to `mill/internal`.
   - Repository: `sql`
   - Component: `core`, `parser`
   - Scope: Add CI/lint check ensuring no import path contains `mill/internal` under shared modules.
