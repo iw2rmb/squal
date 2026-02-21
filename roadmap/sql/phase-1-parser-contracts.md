@@ -30,14 +30,14 @@ Legend: [ ] todo, [x] done.
   - Snippets: `package core`; `type JoinType string`; `type CompareOp string`
   - Tests: `go test ./core/...` — module/package compiles and exports required enum symbols.
 
-- [ ] Extract parser interface into `parser` module — Establish shared contract surface.
+- [x] Extract parser interface into `parser` module — Establish shared contract surface.
   - Repository: `sql`
   - Component: `parser`
   - Scope: Add `parser/interface.go` with `Parser` interface and test factory API (`RegisterTestParserFactory`, `NewTestParser`) matching current API behavior.
   - Snippets: `type Parser interface { ExtractMetadata(...); NormalizeQuery(...); ... }`
   - Tests: `go test ./parser/... -run Test.*Parser` — interface-level tests compile and test factory panic behavior stays explicit.
 
-- [ ] Extract parser DTOs into `parser` module — Move metadata/analysis types to shared ownership.
+- [x] Extract parser DTOs into `parser` module — Move metadata/analysis types to shared ownership.
   - Repository: `sql`
   - Component: `parser`
   - Scope: Add `parser/types.go` by porting DTOs from `../../mill/internal/mill/parser/types.go`; replace enum imports with `github.com/iw2rmb/sql/core`; preserve JSON tags and field names.
