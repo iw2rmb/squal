@@ -15,7 +15,7 @@ Define parser-focused architecture after Phase 1 extraction is complete:
 ## Current State
 
 - `core` and `parser` exist in this repository and are used as shared contracts.
-- PostgreSQL parser implementation still lives in `mill/internal/mill/db/postgres`.
+- PostgreSQL parser implementation is now owned by `sql/parserpg` (ported from `../mill/internal/mill/db/postgres`); `mill` consumer migration is tracked separately.
 - `mill` integration depends on CGO-backed `pg_query` parser registration.
 
 ## Scope

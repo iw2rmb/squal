@@ -3,7 +3,11 @@
 
 package parserpg
 
-import pgquery "github.com/pganalyze/pg_query_go/v6"
+import (
+	pgquery "github.com/pganalyze/pg_query_go/v6"
+
+	"github.com/iw2rmb/sql/parser"
+)
 
 // PGQueryParser is a PostgreSQL parser implementation backed by pg_query.
 type PGQueryParser struct{}
@@ -15,3 +19,6 @@ func NewPGQueryParser() (*PGQueryParser, error) {
 
 // Keep a direct symbol reference so pg_query linkage remains part of the CGO build.
 var _ = pgquery.Parse
+
+// Compile-time contract: PGQueryParser must satisfy shared parser.Parser.
+var _ parser.Parser = (*PGQueryParser)(nil)

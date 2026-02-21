@@ -1,5 +1,4 @@
 // Package parserpg owns the PostgreSQL parser implementation boundary.
 //
-// Phase 2 starts with build-tag scaffolding in this package. Parser behavior
-// is ported in later steps.
+// The package provides a CGO-backed pg_query implementation of parser.Parser.
 package parserpg

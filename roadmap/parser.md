@@ -7,8 +7,8 @@ Documentation:
 - `design/parser.md`
 - `design/sql.md`
 - `roadmap/sql/phase-1-parser-contracts.md`
-- `../../mill/internal/mill/db/postgres/parser_pgquery_*.go`
-- `../../mill/internal/mill/db/postgres/parser_cgo.go`
+- `../mill/internal/mill/db/postgres/parser_pgquery_*.go`
+- `../mill/internal/mill/db/postgres/parser_cgo.go`
 
 Legend: [ ] todo, [x] done.
 
@@ -27,10 +27,10 @@ Legend: [ ] todo, [x] done.
   - Snippets: `package parserpg`
   - Tests: `go test ./parserpg/...` — package builds and test bootstrap is valid.
 
-- [ ] Port PostgreSQL parser implementation from `mill` — Make `parserpg` the canonical PG parser owner.
+- [x] Port PostgreSQL parser implementation from `mill` — Make `parserpg` the canonical PG parser owner.
   - Repository: `sql`
   - Component: `parserpg`
-  - Scope: Port parser logic from `../../mill/internal/mill/db/postgres/parser_pgquery_*.go`; adapt imports to `github.com/iw2rmb/sql/parser` and `github.com/iw2rmb/sql/core`.
+  - Scope: Port parser logic from `../mill/internal/mill/db/postgres/parser_pgquery_*.go`; adapt imports to `github.com/iw2rmb/sql/parser` and `github.com/iw2rmb/sql/core`.
   - Snippets: `func (p *PGQueryParser) ExtractMetadata(...)`
   - Tests: `CGO_ENABLED=1 go test ./parserpg/...` — core parser behavior compiles and passes parserpg tests.
 
