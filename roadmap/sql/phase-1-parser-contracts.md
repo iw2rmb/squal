@@ -83,7 +83,7 @@ Legend: [ ] todo, [x] done.
   - Snippets: `import sqlcore "github.com/iw2rmb/sql/core"`
   - Tests: `go test ./internal/mill/...` — compile-time type consistency is preserved for parser metadata flows.
 
-- [ ] Rebind PostgreSQL parser implementation in `mill` to shared interface — Keep Phase 1 implementation location while adopting shared contract.
+- [x] Rebind PostgreSQL parser implementation in `mill` to shared interface — Keep Phase 1 implementation location while adopting shared contract.
   - Repository: `mill`
   - Component: `internal/mill/db/postgres`
   - Scope: Keep `parser_pgquery_*.go` in `mill`; update types/imports to implement `github.com/iw2rmb/sql/parser.Parser`; keep CGO build-tag registration in `parser_cgo.go` but wired to shared `RegisterTestParserFactory`.
