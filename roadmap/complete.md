@@ -16,7 +16,7 @@ Documentation:
 Legend: [ ] todo, [x] done.
 
 ## Implementation Steps
-- [ ] Add shared core DTOs required by completion contracts — Define stable cross-package primitives before implementing completion engine APIs.
+- [x] Add shared core DTOs required by completion contracts — Define stable cross-package primitives before implementing completion engine APIs.
   - Repository: `sql`
   - Component: `core`
   - Scope: Add `core` types for byte-addressed edits and catalog graph contracts used by `complete` (`Span`, `TextEdit`, `TextChangeSet`, schema/table/column/FK DTOs). Keep `JoinType`/`CompareOp` ownership in `core/sql_types.go`.
