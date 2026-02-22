@@ -23,7 +23,7 @@ Legend: [ ] todo, [x] done.
   - Snippets: `type Span struct { StartByte int; EndByte int }`; `type TextEdit struct { Span Span; NewText string }`
   - Tests: `go test ./core/...` — core DTOs serialize/validate deterministically and compile for downstream imports.
 
-- [ ] Create `complete` package skeleton and public file layout — Establish package boundary and explicit ownership for completion-only logic.
+- [x] Create `complete` package skeleton and public file layout — Establish package boundary and explicit ownership for completion-only logic.
   - Repository: `sql`
   - Component: `complete`
   - Scope: Create initial files (`complete/doc.go`, `complete/types.go`, `complete/engine.go`, `complete/diagnostics.go`) and wire imports only to `core` and `parser` (forbid `parserpg` import in `complete`).
