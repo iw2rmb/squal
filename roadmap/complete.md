@@ -79,7 +79,7 @@ Legend: [ ] todo, [x] done.
   - Snippets: `func (e *EngineImpl) PlanEdit(req Request, accepted Candidate) (EditPlan, []Diagnostic, error)`
   - Tests: `go test ./complete/... -run 'Test(PlanEdit|EditConflict|UnicodeSpanSafety)'` — edits are deterministic, non-overlapping, and byte-correct for Unicode inputs.
 
-- [ ] Implement provider-assisted completion fallback semantics — Keep completion available when provider path fails.
+- [x] Implement provider-assisted completion fallback semantics — Keep completion available when provider path fails.
   - Repository: `sql`
   - Component: `complete`
   - Scope: Add optional provider abstraction in engine internals; when provider fails/unavailable, return parser-backed candidate path with explicit source metadata and stable `ProviderUnavailable` diagnostic.

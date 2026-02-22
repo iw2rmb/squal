@@ -10,8 +10,18 @@ type Engine interface {
 	PlanEdit(req Request, accepted Candidate) (EditPlan, []Diagnostic, error)
 }
 
+// CompletionProvider is an optional provider-assisted completion dependency.
+type CompletionProvider interface {
+	Complete(req Request) (ProviderResult, error)
+}
+
+// ProviderResult is the provider-assisted completion response.
+type ProviderResult struct {
+	Candidates []Candidate
+}
+
 // Config wires dependencies for engine implementations.
-// This shape stays implementation-neutral and parser-only.
 type Config struct {
-	Parser parser.Parser
+	Parser   parser.Parser
+	Provider CompletionProvider
 }

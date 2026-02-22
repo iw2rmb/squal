@@ -2,6 +2,8 @@ package complete
 
 import "sync"
 
+const providerUnavailableMessage = "provider unavailable; using parser fallback"
+
 // EngineImpl is the default completion engine implementation.
 type EngineImpl struct {
 	cfg Config
@@ -42,13 +44,18 @@ func (e *EngineImpl) Complete(req Request) (Response, error) {
 		}, nil
 	}
 
-	ctx, contextDiags := e.buildContext(normalized)
-	candidates := generateCandidates(ctx, catalog, normalized)
-	return Response{
-		Candidates:  candidates,
-		Diagnostics: contextDiags,
-		Source:      CompletionSourceParser,
-	}, nil
+	if e.cfg.Provider == nil {
+		return e.completeWithParser(normalized, catalog), nil
+	}
+
+	if resp, ok := e.completeWithProvider(normalized); ok {
+		return resp, nil
+	}
+
+	resp := e.completeWithParser(normalized, catalog)
+	resp.Diagnostics = append([]Diagnostic{providerUnavailableDiagnostic()}, resp.Diagnostics...)
+	resp.Source = CompletionSourceParserFallback
+	return resp, nil
 }
 
 func (e *EngineImpl) PlanEdit(req Request, accepted Candidate) (EditPlan, []Diagnostic, error) {
@@ -96,4 +103,47 @@ func (e *EngineImpl) resolveCatalog(version CatalogVersion) (CatalogSnapshot, []
 	}
 
 	return snapshot, nil, true
+}
+
+func (e *EngineImpl) completeWithProvider(req Request) (Response, bool) {
+	result, err := e.cfg.Provider.Complete(req)
+	if err != nil || len(result.Candidates) == 0 {
+		return Response{}, false
+	}
+
+	return Response{
+		Candidates: rankProviderCandidates(req, result.Candidates),
+		Source:     CompletionSourceProvider,
+	}, true
+}
+
+func (e *EngineImpl) completeWithParser(req Request, catalog CatalogSnapshot) Response {
+	ctx, contextDiags := e.buildContext(req)
+	candidates := generateCandidates(ctx, catalog, req)
+	return Response{
+		Candidates:  candidates,
+		Diagnostics: contextDiags,
+		Source:      CompletionSourceParser,
+	}
+}
+
+func rankProviderCandidates(req Request, candidates []Candidate) []Candidate {
+	out := newCandidateSet()
+	for _, candidate := range candidates {
+		candidate.Source = CandidateSourceProvider
+		out.add(candidate)
+	}
+
+	out.applyRanking(rankingContext{
+		cursorPrefix: cursorPrefixAt(req.SQL, req.CursorByte),
+	})
+
+	return out.finalize(req.MaxCandidates)
+}
+
+func providerUnavailableDiagnostic() Diagnostic {
+	return Diagnostic{
+		Code:    ProviderUnavailable,
+		Message: providerUnavailableMessage,
+	}
 }

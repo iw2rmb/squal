@@ -112,10 +112,15 @@ func TestEngineContractCompile(t *testing.T) {
 	var _ Engine = (*engineStub)(nil)
 
 	var dependency parser.Parser
+	var provider CompletionProvider
 	cfg := Config{
-		Parser: dependency,
+		Parser:   dependency,
+		Provider: provider,
 	}
 	if cfg.Parser != nil {
 		t.Fatal("unexpected non-nil parser dependency")
+	}
+	if cfg.Provider != nil {
+		t.Fatal("unexpected non-nil provider dependency")
 	}
 }
