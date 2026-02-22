@@ -34,7 +34,7 @@ func (e *EngineImpl) Complete(req Request) (Response, error) {
 		}, nil
 	}
 
-	_, diags, ok := e.resolveCatalog(normalized.CatalogVersion)
+	catalog, diags, ok := e.resolveCatalog(normalized.CatalogVersion)
 	if !ok {
 		return Response{
 			Candidates:  []Candidate{},
@@ -42,10 +42,12 @@ func (e *EngineImpl) Complete(req Request) (Response, error) {
 		}, nil
 	}
 
-	_, contextDiags := e.buildContext(normalized)
+	ctx, contextDiags := e.buildContext(normalized)
+	candidates := generateCandidates(ctx, catalog, normalized)
 	return Response{
-		Candidates:  []Candidate{},
+		Candidates:  candidates,
 		Diagnostics: contextDiags,
+		Source:      CompletionSourceParser,
 	}, nil
 }
 

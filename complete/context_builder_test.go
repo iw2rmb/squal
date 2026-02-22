@@ -56,6 +56,7 @@ func TestBuildContext(t *testing.T) {
 		ActiveClause:      contextClauseWhere,
 		Tables:            []string{"orders", "users"},
 		Aliases:           []string{"o", "u"},
+		AliasBindings:     []aliasBinding{{Alias: "o", Table: "orders"}, {Alias: "u", Table: "users"}},
 		ProjectionTargets: []string{"customer_email", "o.total", "status"},
 		Predicates: []predicateContext{
 			{Qualifier: "o", Column: "status", Operator: string(core.CompareOpEqual), IsParam: true},
@@ -118,8 +119,8 @@ func TestParseDegraded(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Complete() error = %v", err)
 			}
-			if len(resp.Candidates) != 0 {
-				t.Fatalf("Complete() candidates = %d, want 0", len(resp.Candidates))
+			if len(resp.Candidates) == 0 {
+				t.Fatalf("Complete() candidates = %d, want >0 fallback candidates", len(resp.Candidates))
 			}
 			if len(resp.Diagnostics) != 1 {
 				t.Fatalf("Complete() diagnostics = %#v, want exactly one", resp.Diagnostics)

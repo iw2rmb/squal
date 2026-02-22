@@ -55,6 +55,26 @@ func buildContext(meta *parser.QueryMetadata, sql string, cursor int) completion
 	}
 
 	aliasesSet := make(map[string]struct{})
+	aliasToTable := make(map[string]string)
+	ambiguousAliases := make(map[string]struct{})
+
+	recordAliasBinding := func(alias, table string) {
+		if alias == "" || table == "" {
+			return
+		}
+		if _, ambiguous := ambiguousAliases[alias]; ambiguous {
+			return
+		}
+		if existing, ok := aliasToTable[alias]; ok {
+			if existing != table {
+				delete(aliasToTable, alias)
+				ambiguousAliases[alias] = struct{}{}
+			}
+			return
+		}
+		aliasToTable[alias] = table
+	}
+
 	aliasesFromQualifier := func(qualifier string) {
 		if qualifier == "" {
 			return
@@ -68,9 +88,11 @@ func buildContext(meta *parser.QueryMetadata, sql string, cursor int) completion
 	for _, join := range meta.JoinConditions {
 		if join.LeftAlias != "" {
 			aliasesSet[join.LeftAlias] = struct{}{}
+			recordAliasBinding(join.LeftAlias, join.LeftTable)
 		}
 		if join.RightAlias != "" {
 			aliasesSet[join.RightAlias] = struct{}{}
+			recordAliasBinding(join.RightAlias, join.RightTable)
 		}
 	}
 	for _, col := range meta.SelectColumns {
@@ -144,10 +166,25 @@ func buildContext(meta *parser.QueryMetadata, sql string, cursor int) completion
 		return joins[i].RightAlias < joins[j].RightAlias
 	})
 
+	aliasBindings := make([]aliasBinding, 0, len(aliasToTable))
+	for alias, table := range aliasToTable {
+		aliasBindings = append(aliasBindings, aliasBinding{
+			Alias: alias,
+			Table: table,
+		})
+	}
+	sort.Slice(aliasBindings, func(i, j int) bool {
+		if aliasBindings[i].Alias != aliasBindings[j].Alias {
+			return aliasBindings[i].Alias < aliasBindings[j].Alias
+		}
+		return aliasBindings[i].Table < aliasBindings[j].Table
+	})
+
 	return completionContext{
 		ActiveClause:      activeClauseAtCursor(sql, cursor),
 		Tables:            tables,
 		Aliases:           sortedKeys(aliasesSet),
+		AliasBindings:     aliasBindings,
 		ProjectionTargets: sortedKeys(projectionSet),
 		Predicates:        predicates,
 		Joins:             joins,

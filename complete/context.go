@@ -21,10 +21,16 @@ type completionContext struct {
 	ActiveClause      contextClause
 	Tables            []string
 	Aliases           []string
+	AliasBindings     []aliasBinding
 	ProjectionTargets []string
 	Predicates        []predicateContext
 	Joins             []joinContext
 	ParseDegraded     bool
+}
+
+type aliasBinding struct {
+	Alias string
+	Table string
 }
 
 type predicateContext struct {

@@ -58,7 +58,7 @@ Legend: [ ] todo, [x] done.
   - Snippets: `meta, err := p.ExtractMetadata(req.SQL)`; `func buildContext(meta *parser.QueryMetadata, cursor int) Context`
   - Tests: `go test ./complete/... -run 'Test(BuildContext|ParseDegraded|AmbiguousContext)'` — context extraction is deterministic across equivalent inputs.
 
-- [ ] Implement catalog-aware candidate generation — Generate schema/table/column/join/snippet candidates from bound parser+catalog context.
+- [x] Implement catalog-aware candidate generation — Generate schema/table/column/join/snippet candidates from bound parser+catalog context.
   - Repository: `sql`
   - Component: `complete`
   - Scope: Implement generators for object-name candidates, alias-aware column candidates, FK-based join-path suggestions, and always-on snippets/templates.
