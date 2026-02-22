@@ -6,8 +6,8 @@ Documentation:
 - `research/sql.md`
 - `design/parser.md`
 - `design/sql.md`
+- `docs/parser-migration.md`
 - `roadmap/sql/phase-1-parser-contracts.md`
-- `../mill/internal/mill/db/postgres/parser_pgquery_*.go`
 - `../mill/internal/mill/db/postgres/parser_cgo.go`
 
 Legend: [ ] todo, [x] done.
@@ -48,21 +48,21 @@ Legend: [ ] todo, [x] done.
   - Snippets: `go test ./parserpg/... -run Test`
   - Tests: `CGO_ENABLED=1 go test ./parserpg/...` — PG parser output and diagnostics remain parity-compatible.
 
-- [ ] Migrate `mill` to consume `parserpg` implementation — Remove parser implementation ownership from `mill`.
+- [x] Migrate `mill` to consume `parserpg` implementation — Remove parser implementation ownership from `mill`.
   - Repository: `mill`
   - Component: parser integration points
   - Scope: Switch `mill` parser construction/import wiring to `github.com/iw2rmb/sql/parserpg`; remove migrated parser implementation files from `mill` ownership.
   - Snippets: `import "github.com/iw2rmb/sql/parserpg"`
   - Tests: `go test ./internal/mill/db/postgres/...` — `mill` compiles and uses shared parser implementation path.
 
-- [ ] Run focused parity validation in `mill` — Confirm no regressions in parser-dependent subsystems.
+- [x] Run focused parity validation in `mill` — Confirm no regressions in parser-dependent subsystems.
   - Repository: `mill`
   - Component: decomposition, routing, cache
   - Scope: Re-run parser-dependent test suites after migration.
   - Snippets: `CGO_ENABLED=1 go test ./internal/mill/decomposition -run 'Test(ParseSQL|ParsedQuery)'`
   - Tests: `go test ./internal/mill/routing -run 'Test(NewQueryRouter|RouteQuery)'` and `go test ./internal/mill/cache -run 'Test(NewManager|WithParser|Manager_)'` — behavior remains unchanged.
 
-- [ ] Update documentation after migration completion — Keep docs, design, and roadmap aligned with actual ownership.
+- [x] Update documentation after migration completion — Keep docs, design, and roadmap aligned with actual ownership.
   - Repository: `sql`
   - Component: `docs`, `design`, `roadmap`, `research`
   - Scope: Document final parser ownership, migration status, and cross-links to `lst`/`complete` next phases.

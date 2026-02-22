@@ -12,7 +12,7 @@ Related:
 
 Create a standalone parser-contract module in this repo that can be imported by `mill`, `cow`, and future SQL services.
 
-Phase 1 is contract extraction only. It does not move PostgreSQL parser implementation yet.
+This document is phase-1 specific. Phase 2 parser migration is complete and tracked in `./parser.md` and `../roadmap/parser.md`.
 
 ## Current State (researched in `../mill`)
 
@@ -116,4 +116,4 @@ Required checks after implementation:
 
 ## Next Phase Link
 
-Phase 2 will move PG parser implementation from `mill/internal/mill/db/postgres/parser_pgquery_*.go` into `parserpg` as defined in `../research/sql.md` migration step 2.
+Phase 2 completed: PG parser implementation moved from `mill/internal/mill/db/postgres/parser_pgquery_*.go` into `parserpg`. See `./parser.md` and `../roadmap/parser.md`.
