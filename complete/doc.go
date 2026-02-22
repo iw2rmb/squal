@@ -4,7 +4,7 @@
 // It provides deterministic catalog lifecycle storage and versioning.
 // It includes parser-context extraction and catalog-aware candidate generation.
 // It includes deterministic ranking with explicit tie-break ordering.
-// Later roadmap steps add deterministic edit planning behavior.
+// It includes deterministic edit planning behavior for accepted candidates.
 //
 // Dependency boundary:
 //   - allowed SQL package imports: core, parser

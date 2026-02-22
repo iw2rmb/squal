@@ -72,7 +72,7 @@ Legend: [ ] todo, [x] done.
   - Snippets: `sort.Slice(cands, func(i, j int) bool { return less(cands[i], cands[j]) })`
   - Tests: `go test ./complete/... -run 'Test(RankingDeterminism|StableTiebreaks)'` — repeated runs return byte-identical candidate ordering.
 
-- [ ] Implement deterministic edit planning for accepted candidates — Produce safe replacement edits with stable spans and conflict checks.
+- [x] Implement deterministic edit planning for accepted candidates — Produce safe replacement edits with stable spans and conflict checks.
   - Repository: `sql`
   - Component: `complete`
   - Scope: Implement `PlanEdit` to compute replacement range around cursor/token, emit `core.TextEdit` plans, and reject overlapping/invalid spans with deterministic diagnostics.

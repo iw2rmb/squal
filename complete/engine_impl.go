@@ -62,7 +62,8 @@ func (e *EngineImpl) PlanEdit(req Request, accepted Candidate) (EditPlan, []Diag
 		return EditPlan{}, diags, nil
 	}
 
-	return EditPlan{}, nil, nil
+	plan, planDiags := planSingleEdit(normalized, accepted)
+	return plan, planDiags, nil
 }
 
 func (e *EngineImpl) catalogStore() *catalogStore {
