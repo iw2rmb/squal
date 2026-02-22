@@ -1,0 +1,80 @@
+package complete
+
+import "sync"
+
+// EngineImpl is the default completion engine implementation.
+type EngineImpl struct {
+	cfg Config
+
+	catalogs     *catalogStore
+	catalogsOnce sync.Once
+}
+
+// NewEngine creates a completion engine with deterministic catalog lifecycle storage.
+func NewEngine(cfg Config) Engine {
+	return &EngineImpl{
+		cfg: cfg,
+	}
+}
+
+func (e *EngineImpl) InitCatalog(snapshot CatalogSnapshot) (CatalogVersion, error) {
+	return e.catalogStore().put(snapshot)
+}
+
+func (e *EngineImpl) UpdateCatalog(snapshot CatalogSnapshot) (CatalogVersion, error) {
+	return e.catalogStore().put(snapshot)
+}
+
+func (e *EngineImpl) Complete(req Request) (Response, error) {
+	_, diags, ok := e.resolveCatalog(req.CatalogVersion)
+	if !ok {
+		return Response{
+			Diagnostics: diags,
+		}, nil
+	}
+
+	return Response{
+		Candidates: []Candidate{},
+	}, nil
+}
+
+func (e *EngineImpl) PlanEdit(req Request, accepted Candidate) (EditPlan, []Diagnostic, error) {
+	_, diags, ok := e.resolveCatalog(req.CatalogVersion)
+	if !ok {
+		return EditPlan{}, diags, nil
+	}
+
+	return EditPlan{}, nil, nil
+}
+
+func (e *EngineImpl) catalogStore() *catalogStore {
+	e.catalogsOnce.Do(func() {
+		if e.catalogs == nil {
+			e.catalogs = newCatalogStore()
+		}
+	})
+	return e.catalogs
+}
+
+func (e *EngineImpl) resolveCatalog(version CatalogVersion) (CatalogSnapshot, []Diagnostic, bool) {
+	if version == "" {
+		return CatalogSnapshot{}, []Diagnostic{
+			{
+				Code:    CatalogVersionUnknown,
+				Message: "catalog version is not initialized",
+			},
+		}, false
+	}
+
+	snapshot, ok := e.catalogStore().get(version)
+	if !ok {
+		return CatalogSnapshot{}, []Diagnostic{
+			{
+				Code:    CatalogVersionUnknown,
+				Message: "catalog version is unknown",
+			},
+		}, false
+	}
+
+	return snapshot, nil, true
+}

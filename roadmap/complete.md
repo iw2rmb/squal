@@ -37,7 +37,7 @@ Legend: [ ] todo, [x] done.
   - Snippets: `func (e *EngineImpl) InitCatalog(snapshot CatalogSnapshot) (CatalogVersion, error)`
   - Tests: `go test ./complete/... -run 'Test(Types|EngineContract)'` — contract shape is compile-stable and behaviorally testable.
 
-- [ ] Implement deterministic catalog lifecycle store — Make catalog initialization/update efficient and reusable across many completion requests.
+- [x] Implement deterministic catalog lifecycle store — Make catalog initialization/update efficient and reusable across many completion requests.
   - Repository: `sql`
   - Component: `complete`
   - Scope: Add catalog store keyed by stable version hash; canonicalize catalog snapshot ordering; support replace/update semantics with deterministic versioning and lookup by `CatalogVersion`.
