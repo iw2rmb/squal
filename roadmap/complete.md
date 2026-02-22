@@ -65,7 +65,7 @@ Legend: [ ] todo, [x] done.
   - Snippets: `func generateCandidates(ctx Context, catalog CatalogSnapshot) []Candidate`
   - Tests: `go test ./complete/... -run 'Test(CatalogCandidates|JoinSuggestions|SnippetCandidates)'` — expected candidate families are present and context-scoped.
 
-- [ ] Implement deterministic ranking and tie-break sorting — Guarantee stable candidate ordering for identical request identity.
+- [x] Implement deterministic ranking and tie-break sorting — Guarantee stable candidate ordering for identical request identity.
   - Repository: `sql`
   - Component: `complete`
   - Scope: Add weighted scoring model and explicit tie-break keys (kind priority, exact-prefix match, lexical fallback) with deterministic sort implementation.

@@ -26,6 +26,11 @@ type candidateSet struct {
 	seen  map[string]struct{}
 }
 
+type rankingContext struct {
+	activeClause contextClause
+	cursorPrefix string
+}
+
 type tableBinding struct {
 	qualifier string
 	entry     catalogTableEntry
@@ -48,6 +53,11 @@ func generateCandidates(ctx completionContext, catalog CatalogSnapshot, req Requ
 	if req.IncludeSnippets {
 		addSnippetCandidates(out)
 	}
+
+	out.applyRanking(rankingContext{
+		activeClause: ctx.ActiveClause,
+		cursorPrefix: cursorPrefixAt(req.SQL, req.CursorByte),
+	})
 
 	return out.finalize(req.MaxCandidates)
 }
@@ -121,39 +131,68 @@ func (s *candidateSet) add(candidate Candidate) {
 	s.items = append(s.items, candidate)
 }
 
-func (s *candidateSet) finalize(max int) []Candidate {
-	sort.Slice(s.items, func(i, j int) bool {
-		left := s.items[i]
-		right := s.items[j]
+func (s *candidateSet) applyRanking(ctx rankingContext) {
+	for i := range s.items {
+		populateRanking(&s.items[i], ctx)
+	}
+}
 
-		if left.SortKey.KindPriority != right.SortKey.KindPriority {
-			return left.SortKey.KindPriority < right.SortKey.KindPriority
-		}
-		if left.Kind != right.Kind {
-			return left.Kind < right.Kind
-		}
-		if left.SortKey.LabelLexical != right.SortKey.LabelLexical {
-			return left.SortKey.LabelLexical < right.SortKey.LabelLexical
-		}
-		if left.SortKey.InsertLexical != right.SortKey.InsertLexical {
-			return left.SortKey.InsertLexical < right.SortKey.InsertLexical
-		}
-		if left.Label != right.Label {
-			return left.Label < right.Label
-		}
-		if left.InsertText != right.InsertText {
-			return left.InsertText < right.InsertText
-		}
-		if left.Source != right.Source {
-			return left.Source < right.Source
-		}
-		return left.ID < right.ID
-	})
+func populateRanking(candidate *Candidate, ctx rankingContext) {
+	exactPrefix := hasExactPrefixMatch(candidate, ctx.cursorPrefix)
+	candidate.SortKey.ExactPrefix = exactPrefix
+
+	candidate.ScoreComponents = ScoreComponents{
+		Context:  contextScore(ctx.activeClause, candidate.Kind),
+		Catalog:  catalogScore(candidate.Source),
+		Prefix:   prefixScore(exactPrefix),
+		Snippet:  snippetScore(candidate.Kind),
+		Provider: providerScore(candidate.Source),
+	}
+	candidate.Score = candidate.ScoreComponents.Context +
+		candidate.ScoreComponents.Catalog +
+		candidate.ScoreComponents.Prefix +
+		candidate.ScoreComponents.Snippet +
+		candidate.ScoreComponents.Provider
+}
+
+func (s *candidateSet) finalize(max int) []Candidate {
+	sort.Slice(s.items, func(i, j int) bool { return candidateLess(s.items[i], s.items[j]) })
 
 	if max > 0 && len(s.items) > max {
 		return append([]Candidate(nil), s.items[:max]...)
 	}
 	return append([]Candidate(nil), s.items...)
+}
+
+func candidateLess(left Candidate, right Candidate) bool {
+	if left.Score != right.Score {
+		return left.Score > right.Score
+	}
+	if left.SortKey.KindPriority != right.SortKey.KindPriority {
+		return left.SortKey.KindPriority < right.SortKey.KindPriority
+	}
+	if left.SortKey.ExactPrefix != right.SortKey.ExactPrefix {
+		return left.SortKey.ExactPrefix && !right.SortKey.ExactPrefix
+	}
+	if left.Kind != right.Kind {
+		return left.Kind < right.Kind
+	}
+	if left.SortKey.LabelLexical != right.SortKey.LabelLexical {
+		return left.SortKey.LabelLexical < right.SortKey.LabelLexical
+	}
+	if left.SortKey.InsertLexical != right.SortKey.InsertLexical {
+		return left.SortKey.InsertLexical < right.SortKey.InsertLexical
+	}
+	if left.Label != right.Label {
+		return left.Label < right.Label
+	}
+	if left.InsertText != right.InsertText {
+		return left.InsertText < right.InsertText
+	}
+	if left.Source != right.Source {
+		return left.Source < right.Source
+	}
+	return left.ID < right.ID
 }
 
 func addSchemaCandidates(out *candidateSet, idx catalogIndex) {
@@ -509,6 +548,179 @@ func candidateKindPriority(kind CandidateKind) int {
 	default:
 		return 100
 	}
+}
+
+func contextScore(clause contextClause, kind CandidateKind) float64 {
+	switch clause {
+	case contextClauseSelect:
+		switch kind {
+		case CandidateKindColumn:
+			return 50
+		case CandidateKindTable:
+			return 20
+		case CandidateKindJoin:
+			return 10
+		case CandidateKindSchema:
+			return 8
+		case CandidateKindSnippet:
+			return 6
+		case CandidateKindKeyword:
+			return 5
+		}
+	case contextClauseFrom:
+		switch kind {
+		case CandidateKindTable:
+			return 50
+		case CandidateKindSchema:
+			return 24
+		case CandidateKindJoin:
+			return 12
+		case CandidateKindColumn:
+			return 6
+		case CandidateKindSnippet:
+			return 5
+		case CandidateKindKeyword:
+			return 4
+		}
+	case contextClauseJoin:
+		switch kind {
+		case CandidateKindJoin:
+			return 50
+		case CandidateKindTable:
+			return 30
+		case CandidateKindColumn:
+			return 12
+		case CandidateKindSchema:
+			return 6
+		case CandidateKindSnippet:
+			return 5
+		case CandidateKindKeyword:
+			return 4
+		}
+	case contextClauseWhere:
+		switch kind {
+		case CandidateKindColumn:
+			return 55
+		case CandidateKindJoin:
+			return 12
+		case CandidateKindTable:
+			return 8
+		case CandidateKindSchema:
+			return 5
+		case CandidateKindSnippet:
+			return 6
+		case CandidateKindKeyword:
+			return 4
+		}
+	case contextClauseGroupBy, contextClauseOrderBy:
+		switch kind {
+		case CandidateKindColumn:
+			return 50
+		case CandidateKindTable:
+			return 8
+		case CandidateKindSchema:
+			return 5
+		case CandidateKindSnippet:
+			return 5
+		case CandidateKindKeyword:
+			return 4
+		case CandidateKindJoin:
+			return 6
+		}
+	}
+	return 0
+}
+
+func catalogScore(source CandidateSource) float64 {
+	switch source {
+	case CandidateSourceCatalog:
+		return 20
+	case CandidateSourceParser:
+		return 12
+	case CandidateSourceSnippet:
+		return 8
+	case CandidateSourceProvider:
+		return 6
+	default:
+		return 0
+	}
+}
+
+func prefixScore(exact bool) float64 {
+	if exact {
+		return 30
+	}
+	return 0
+}
+
+func snippetScore(kind CandidateKind) float64 {
+	if kind == CandidateKindSnippet {
+		return -5
+	}
+	return 0
+}
+
+func providerScore(source CandidateSource) float64 {
+	if source == CandidateSourceProvider {
+		return 10
+	}
+	return 0
+}
+
+func cursorPrefixAt(sql string, cursor int) string {
+	if cursor < 0 {
+		cursor = 0
+	}
+	if cursor > len(sql) {
+		cursor = len(sql)
+	}
+
+	start := cursor
+	for start > 0 && isIdentifierByte(sql[start-1]) {
+		start--
+	}
+	if start == cursor {
+		return ""
+	}
+	return strings.ToLower(sql[start:cursor])
+}
+
+func hasExactPrefixMatch(candidate *Candidate, prefix string) bool {
+	if prefix == "" {
+		return false
+	}
+
+	return hasIdentifierPrefix(candidate.SortKey.LabelLexical, prefix) ||
+		hasIdentifierPrefix(candidate.SortKey.InsertLexical, prefix)
+}
+
+func hasIdentifierPrefix(value string, prefix string) bool {
+	start := -1
+	for i := 0; i <= len(value); i++ {
+		if i < len(value) && isIdentifierByte(value[i]) {
+			if start < 0 {
+				start = i
+			}
+			continue
+		}
+
+		if start >= 0 {
+			if strings.HasPrefix(value[start:i], prefix) {
+				return true
+			}
+			start = -1
+		}
+	}
+
+	return false
+}
+
+func isIdentifierByte(b byte) bool {
+	return (b >= 'a' && b <= 'z') ||
+		(b >= 'A' && b <= 'Z') ||
+		(b >= '0' && b <= '9') ||
+		b == '_' ||
+		b == '$'
 }
 
 func candidateID(candidate Candidate) string {
