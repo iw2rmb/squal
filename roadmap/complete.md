@@ -93,7 +93,7 @@ Legend: [ ] todo, [x] done.
   - Snippets: `go test ./complete/... -run TestGolden`; `go test ./complete/... -run Fuzz -fuzz=Fuzz -fuzztime=10s`
   - Tests: `go test ./complete/...` — golden outputs stable; fuzz does not reveal panics/span corruption.
 
-- [ ] Run acceptance gate and synchronize documentation state — Mark roadmap completion only when contracts, behavior, and docs are aligned.
+- [x] Run acceptance gate and synchronize documentation state — Mark roadmap completion only when contracts, behavior, and docs are aligned.
   - Repository: `sql`
   - Component: `core`, `complete`, docs
   - Scope: Run full targeted suite, enforce forbidden import boundary, then update docs/roadmap checkboxes (`research/sql.md`, `design/completions.md`, `roadmap/complete.md`) to reflect implemented state.

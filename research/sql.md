@@ -223,10 +223,11 @@ Aster CI consumes released SQL module versions; it does not build SQL parser int
 Status:
 - completed: parser contract extraction to `parser` (`roadmap/sql/phase-1-parser-contracts.md`)
 - completed: PostgreSQL parser migration to `parserpg` and `mill` consumer switch (`roadmap/parser.md`)
+- completed: `complete` package implementation and acceptance/doc sync (`roadmap/complete.md`)
 
 1. Extract parser contracts from `mill/internal` into `parser`.
 2. Port PostgreSQL parser implementation to `parserpg` with test parity.
-3. Implement `complete` with deterministic edits and fallback-oriented behavior.
+3. Completed: implement `complete` with deterministic edits and fallback-oriented behavior.
 4. Integrate `cmd/aster-adapter-sql` in Aster using released SQL modules.
 5. Integrate `cow` completion stack with SQL modules and fallback policies.
 6. Maintain `mill` parser consumption on shared modules.

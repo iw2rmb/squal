@@ -2,7 +2,9 @@
 
 Related:
 - `../roadmap/parser.md`
+- `../roadmap/complete.md`
 - `../design/parser.md`
+- `../design/completions.md`
 - `../design/sql.md`
 - `../research/sql.md`
 
@@ -10,6 +12,7 @@ Related:
 
 - `sql/parser` owns parser contracts and DTOs.
 - `sql/parserpg` owns PostgreSQL parser implementation (CGO + `pg_query` boundary).
+- `sql/complete` owns deterministic SQL completion ranking, fallback behavior, and deterministic edit planning.
 - `mill` consumes `sql/parserpg` and no longer owns `internal/mill/db/postgres/parser_pgquery_*.go`.
 
 ## Mill Integration Shape
@@ -26,5 +29,5 @@ Related:
 
 ## Next Work
 
-- Implement `lst` package according to `research/sql.md`.
-- Implement `complete` package according to `research/sql.md`.
+- Integrate `cmd/aster-adapter-sql` completion forwarding and edit-plan application in `aster` using `sql/complete`.
+- Integrate `cow` completion stack with shared SQL modules and fallback policy from `sql/complete`.

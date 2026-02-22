@@ -19,6 +19,7 @@ Define completion architecture in this repository without introducing SQL-owned 
 - `core`, `parser`, and `parserpg` are implemented and tested.
 - parser migration from `mill` is complete.
 - `complete` package has contract surface (`doc.go`, `types.go`, `engine.go`, `diagnostics.go`), deterministic catalog lifecycle storage with canonicalized version hashing/lookup, deterministic request normalization/cursor validation, parser-context extraction, catalog-aware candidate generation, deterministic ranking/tie-break sorting, deterministic edit planning, and provider-assisted completion fallback semantics in the default engine implementation.
+- completion acceptance gate is complete: `go test ./core/... ./parser/... ./complete/...` passes, and `complete` has no `parserpg` import.
 - SQL LST ownership is moved to `aster`, not this repository.
 
 ## Scope
