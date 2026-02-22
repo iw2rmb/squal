@@ -41,7 +41,7 @@ Legend: [ ] todo, [x] done.
   - Snippets: `func init() { parser.RegisterTestParserFactory(...) }`
   - Tests: `CGO_ENABLED=1 go test ./parser/... ./parserpg/...` — factory resolution works and panic semantics remain explicit when unavailable.
 
-- [ ] Port parserpg parity tests into `sql` — Lock migrated implementation behavior.
+- [x] Port parserpg parity tests into `sql` — Lock migrated implementation behavior.
   - Repository: `sql`
   - Component: `parserpg` tests
   - Scope: Port relevant parser PG tests from `mill` with behavior-equivalent assertions and fixture coverage.
