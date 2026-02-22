@@ -7,7 +7,7 @@ import (
 	"github.com/iw2rmb/sql/parser"
 )
 
-func TestSkeletonTypesCompile(t *testing.T) {
+func TestTypesContractCompile(t *testing.T) {
 	t.Parallel()
 
 	snapshot := CatalogSnapshot{
@@ -19,29 +19,50 @@ func TestSkeletonTypesCompile(t *testing.T) {
 		SearchPath: []string{"public"},
 	}
 	req := Request{
-		SQL:            "select 1",
-		CursorByte:     8,
-		CatalogVersion: CatalogVersion("v1"),
+		SQL:             "select 1",
+		CursorByte:      8,
+		CatalogVersion:  CatalogVersion("v1"),
+		MaxCandidates:   20,
+		IncludeSnippets: true,
 	}
 	candidate := Candidate{
+		ID:         "kw.select",
 		Label:      "SELECT",
 		InsertText: "SELECT ",
-		Kind:       "keyword",
+		Kind:       CandidateKindKeyword,
+		Score:      1.0,
+		ScoreComponents: ScoreComponents{
+			Context: 0.5,
+			Prefix:  0.5,
+		},
+		SortKey: CandidateSortKey{
+			KindPriority:  10,
+			ExactPrefix:   true,
+			LabelLexical:  "SELECT",
+			InsertLexical: "SELECT ",
+		},
+		Source: CandidateSourceParser,
 	}
 	plan := EditPlan{
+		ReplacementSpan: core.Span{StartByte: 0, EndByte: 0},
 		Edits: []core.TextEdit{
 			{
 				Span:    core.Span{StartByte: 0, EndByte: 0},
 				NewText: "SELECT ",
 			},
 		},
+		Validation: EditPlanValidation{
+			InBounds:       true,
+			NonOverlapping: true,
+		},
 	}
 	resp := Response{
-		Candidates: []Candidate{candidate},
+		Candidates:       []Candidate{candidate},
+		SelectedEditPlan: &plan,
 		Diagnostics: []Diagnostic{
 			{Code: ParseDegraded, Message: "degraded"},
 		},
-		Source: "parser",
+		Source: CompletionSourceParser,
 	}
 
 	if snapshot.Schemas[0].Name != "public" {
@@ -50,11 +71,20 @@ func TestSkeletonTypesCompile(t *testing.T) {
 	if req.CatalogVersion != "v1" {
 		t.Fatalf("unexpected catalog version: %q", req.CatalogVersion)
 	}
+	if !req.IncludeSnippets {
+		t.Fatal("expected snippets enabled")
+	}
 	if len(plan.Edits) != 1 {
 		t.Fatalf("unexpected edit count: %d", len(plan.Edits))
 	}
+	if !plan.Validation.NonOverlapping {
+		t.Fatal("expected non-overlapping plan")
+	}
 	if len(resp.Candidates) != 1 {
 		t.Fatalf("unexpected candidate count: %d", len(resp.Candidates))
+	}
+	if resp.SelectedEditPlan == nil {
+		t.Fatal("expected selected edit plan")
 	}
 }
 

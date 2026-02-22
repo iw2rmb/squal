@@ -30,7 +30,7 @@ Legend: [ ] todo, [x] done.
   - Snippets: `package complete`; `type Engine interface { ... }`
   - Tests: `go test ./complete/...` — package builds with baseline type/interface tests.
 
-- [ ] Implement completion API contracts from design — Freeze external contract before algorithm implementation to prevent drift.
+- [x] Implement completion API contracts from design — Freeze external contract before algorithm implementation to prevent drift.
   - Repository: `sql`
   - Component: `complete`
   - Scope: Implement public DTOs and interface from `design/completions.md`: `CatalogSnapshot`, `CatalogVersion`, `Request`, `Candidate`, `EditPlan`, `Response`, `Engine` (`InitCatalog`, `UpdateCatalog`, `Complete`, `PlanEdit`).
