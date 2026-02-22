@@ -1,24 +1,26 @@
-# Design: Shared SQL Platform
+# Research: Shared SQL Platform
 
-This document defines the implementation design for the shared SQL platform used by:
+This document defines the target architecture for shared SQL capabilities used by:
 - `aster`
 - `mill`
 - `cow`
-- optional standalone SQL LSP services
+- optional standalone SQL tooling
 
 Related:
-- Aster target alignment: `../../aster/research/target.md`
-- Aster protocol shape: `../../aster/docs/protocol/README.md`
-- Aster SDK LST surface: `../../aster/docs/sdk/README.md`
+- SQL implementation design baseline: `../design/sql.md`
+- Parser migration status: `../docs/parser-migration.md`
+- Parser roadmap status: `../roadmap/parser.md`
+- Completion implementation design: `../design/completions.md`
+- Aster-side SQL LST ownership note: `../../aster/research/sql-lst.md`
 
 ## Decision
 
-Build SQL as an independent shared platform in `sql` repo, not inside `aster/internal`.
+Build SQL as an independent shared platform in `sql` repo, and keep SQL-specific traversal/mutation/LST orchestration in `aster`.
 
 Rationale:
-- `mill` and `cow` must import stable semver tags directly.
-- SQL CGO/toolchain and CI must be owned independently from Aster runtime CI.
-- SQL completion and live editing are domain-specific and should be owned by SQL packages/services, not by Aster session internals.
+- `mill` and `cow` need stable semver imports for parser and completion capabilities.
+- Completion in editors can be implemented deterministically with parser + context + edit planning, without requiring SQL-side LST ownership.
+- Aster already owns generic traversal/mutation/walk orchestration and should remain the place for SQL LST integration logic.
 
 ## Scope
 
@@ -26,21 +28,22 @@ Rationale:
 
 - Parser-neutral SQL core contracts.
 - PostgreSQL parser implementation with isolated CGO boundary.
-- SQL LST model and deterministic emit behavior.
-- Completion and edit planning engine.
-- Reusable packages for both batch and live consumers.
+- SQL completion classification/ranking.
+- Deterministic completion edit planning.
+- Reusable packages for batch and live consumers.
 
 ## Out of scope
 
-- Aster protocol server implementation.
-- Aster workspace/session orchestration internals.
+- SQL-owned LST package in this repository.
+- Aster protocol server implementation details.
+- Aster workspace/session internals.
 - App-specific UI/editor code.
 
 ## Repository Domain And Ownership
 
-This repo owns SQL language intelligence and SQL live-completion semantics.
+This repo owns SQL parsing and completion semantics.
 
-Aster owns orchestration and protocol integration.
+Aster owns traversal/mutation orchestration and SQL LST integration behavior.
 
 Import rule:
 - allowed: `aster -> sql`
@@ -65,21 +68,16 @@ Top-level package split:
 - only package with CGO
 - no app/runtime orchestration logic
 
-4. `lst`
-- SQL LST/CST representation
-- capture taxonomy for deterministic query/traverse/mutate
-- lossless emit guarantees for untouched ranges
-
-5. `complete`
+4. `complete`
 - completion classification/ranking
 - deterministic edit planning
 - join path suggestions (including multi-column FK)
+- parser-context completion fallback behavior
 
 Allowed dependency direction:
-- `core` <- `parser`, `lst`, `complete`
-- `parser` <- `parserpg`, `lst`, `complete`
-- `lst` <- `complete`
-- `parserpg` must not import `lst` or `complete`
+- `core` <- `parser`, `complete`
+- `parser` <- `parserpg`, `complete`
+- `parserpg` must not import `complete`
 
 ## Module And Versioning Strategy
 
@@ -87,7 +85,6 @@ Use separate Go modules per package boundary for clear release and consumption:
 - `core/go.mod`
 - `parser/go.mod`
 - `parserpg/go.mod`
-- `lst/go.mod`
 - `complete/go.mod`
 
 Version policy:
@@ -106,18 +103,18 @@ Version policy:
 
 ## Aster-facing requirements
 
-Aster must be able to implement `cmd/aster-adapter-sql` using this repo only for SQL logic.
+Aster must be able to implement `cmd/aster-adapter-sql` using this repo for SQL parse and completion logic.
 
 `cmd/aster-adapter-sql` in Aster must provide:
 - `initialize`
 - `didOpen`/`didChange`/`didClose`/`didReset`
-- `parse`/`emit`
-- `query`
-- `traverse`/`mutate`/`walk` via existing Aster protocol flows
+- `parse`
+- completion request handling backed by `complete`
+- traversal/mutation/walk integration in Aster-owned SQL LST layer
 
 Aster package boundaries:
-- keep SQL-specific parsing/LST/completion logic out of Aster generic workspace/core packages
-- keep Aster as batch-first orchestrator with deterministic contracts
+- keep SQL parsing/completion logic out of Aster generic workspace/core packages
+- keep Aster as orchestrator for traversal/mutation/walk execution
 
 ## Cow-facing requirements
 
@@ -148,13 +145,6 @@ Must define:
 - analysis DTOs (joins, group-by, distinct, aggregates, temporal/sliding windows, json-path)
 - parse diagnostics model with stable fields
 
-## `lst`
-
-Must define:
-- SQL LST node model with stable node IDs
-- capture schema and kind registry
-- emit API with lossless roundtrip guarantees for untouched spans
-
 ## `complete`
 
 Must define:
@@ -165,14 +155,13 @@ Must define:
 
 ## Completion And Session Ownership
 
-Completion is owned by SQL platform packages/services.
+Completion semantics are owned by SQL packages/services.
 
-Aster session mode is not required to own SQL completion behavior.
+Aster session/workspace mode remains the owner of orchestration and document-graph traversal behavior.
 
 Implications:
-- SQL live-completion lifecycle can evolve independently.
-- Aster may keep using stateless/batch orchestration while integrating SQL adapter functionality.
-- If Aster later adds long-lived sessions, that is for generic orchestration efficiency, not a prerequisite for SQL completion features.
+- SQL completion lifecycle can evolve independently.
+- Aster can integrate SQL completion while retaining existing traversal/mutation/walk engine ownership.
 
 ## Aster Integration Boundary
 
@@ -180,22 +169,22 @@ Keep in Aster:
 - `cmd/aster-adapter-sql`
 - adapter inference (`.sql` -> adapter)
 - workspace/sdk/mod generic flows (`Traverse`, `Mutate`, `Walk`, canonical metadata)
+- SQL LST integration and traversal/mutation orchestration
 
 Keep in SQL repo:
 - parser implementations
-- SQL LST model and capture taxonomy
-- SQL completion and edit planning
-- SQL live provider/fallback policy
+- SQL completion ranking and edit planning
+- SQL provider/fallback policy for completion
 
 ## Batch And Live Architecture
 
 Two supported consumption tracks share the same SQL packages:
 
 1. Batch track
-- Aster adapter calls SQL packages for parse/query/rewrite/traverse/mutate
+- Aster adapter calls SQL packages for parse/completion planning and applies edits through Aster orchestration.
 
 2. Live track
-- dedicated SQL LSP/service uses SQL packages for low-latency completion/editing
+- dedicated SQL tooling uses SQL packages for low-latency completion and deterministic edit planning.
 
 Constraint:
 - both tracks must produce consistent deterministic edit semantics for the same input state
@@ -205,19 +194,19 @@ Constraint:
 ## Unit tests
 
 - parser DTO conformance
-- LST node/capture stability
+- completion ranking determinism
 - edit planner determinism
 - Unicode and byte-span correctness
 
 ## Integration tests
 
-- parity cases across `aster` adapter and SQL live service
+- parity cases across `aster` adapter and SQL live path
 - crash/fallback behavior for completion providers
 - CGO boundary behavior for `parserpg`
 
 ## Golden tests
 
-- canonical parse/query/lst/completion fixtures
+- canonical parse/completion fixtures
 - deterministic output snapshots
 
 ## CI And Toolchain
@@ -237,19 +226,18 @@ Status:
 
 1. Extract parser contracts from `mill/internal` into `parser`.
 2. Port PostgreSQL parser implementation to `parserpg` with test parity.
-3. Implement `lst` node/capture schema and lossless emit tests.
-4. Implement `complete` with deterministic edits and fallback-oriented behavior.
-5. Integrate `cmd/aster-adapter-sql` in Aster using released SQL modules.
-6. Integrate `cow` completion stack with SQL modules and fallback policies.
-7. Migrate `mill` call-sites from internal parser to SQL modules.
+3. Implement `complete` with deterministic edits and fallback-oriented behavior.
+4. Integrate `cmd/aster-adapter-sql` in Aster using released SQL modules.
+5. Integrate `cow` completion stack with SQL modules and fallback policies.
+6. Maintain `mill` parser consumption on shared modules.
 
 ## Risks And Mitigations
 
 - Risk: module split increases release overhead.
   - Mitigation: automate tagging/changelog, keep strict dependency direction.
 
-- Risk: divergence between batch and live behaviors.
+- Risk: divergence between SQL completion behavior and Aster traversal/mutation application.
   - Mitigation: shared fixtures and parity integration tests across both tracks.
 
 - Risk: CGO instability impacts consumers.
-  - Mitigation: isolate CGO in `parserpg`; keep parser-neutral contracts in non-CGO modules.
+  - Mitigation: isolate CGO in `parserpg`; keep parser-neutral and completion contracts in non-CGO modules.
