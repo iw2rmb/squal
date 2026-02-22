@@ -2,7 +2,6 @@ package complete
 
 import (
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/iw2rmb/squal/parser"
@@ -54,8 +53,8 @@ func buildContext(meta *parser.QueryMetadata, sql string, cursor int) completion
 		knownTables[strings.ToLower(table)] = struct{}{}
 	}
 
-	aliasesSet := make(map[string]struct{})
-	aliasToTable := make(map[string]string)
+	aliasesSet := make(map[string]struct{}, len(meta.JoinConditions)*2)
+	aliasToTable := make(map[string]string, len(meta.JoinConditions)*2)
 	ambiguousAliases := make(map[string]struct{})
 
 	recordAliasBinding := func(alias, table string) {
@@ -120,16 +119,17 @@ func buildContext(meta *parser.QueryMetadata, sql string, cursor int) completion
 		})
 	}
 	sort.Slice(predicates, func(i, j int) bool {
-		if predicates[i].Qualifier != predicates[j].Qualifier {
-			return predicates[i].Qualifier < predicates[j].Qualifier
+		a, b := predicates[i], predicates[j]
+		if a.Qualifier != b.Qualifier {
+			return a.Qualifier < b.Qualifier
 		}
-		if predicates[i].Column != predicates[j].Column {
-			return predicates[i].Column < predicates[j].Column
+		if a.Column != b.Column {
+			return a.Column < b.Column
 		}
-		if predicates[i].Operator != predicates[j].Operator {
-			return predicates[i].Operator < predicates[j].Operator
+		if a.Operator != b.Operator {
+			return a.Operator < b.Operator
 		}
-		return strconv.FormatBool(predicates[i].IsParam) < strconv.FormatBool(predicates[j].IsParam)
+		return !a.IsParam && b.IsParam
 	})
 
 	joins := make([]joinContext, 0, len(meta.JoinConditions))
@@ -145,25 +145,26 @@ func buildContext(meta *parser.QueryMetadata, sql string, cursor int) completion
 		})
 	}
 	sort.Slice(joins, func(i, j int) bool {
-		if joins[i].Type != joins[j].Type {
-			return joins[i].Type < joins[j].Type
+		a, b := joins[i], joins[j]
+		if a.Type != b.Type {
+			return a.Type < b.Type
 		}
-		if joins[i].LeftTable != joins[j].LeftTable {
-			return joins[i].LeftTable < joins[j].LeftTable
+		if a.LeftTable != b.LeftTable {
+			return a.LeftTable < b.LeftTable
 		}
-		if joins[i].RightTable != joins[j].RightTable {
-			return joins[i].RightTable < joins[j].RightTable
+		if a.RightTable != b.RightTable {
+			return a.RightTable < b.RightTable
 		}
-		if joins[i].LeftColumn != joins[j].LeftColumn {
-			return joins[i].LeftColumn < joins[j].LeftColumn
+		if a.LeftColumn != b.LeftColumn {
+			return a.LeftColumn < b.LeftColumn
 		}
-		if joins[i].RightColumn != joins[j].RightColumn {
-			return joins[i].RightColumn < joins[j].RightColumn
+		if a.RightColumn != b.RightColumn {
+			return a.RightColumn < b.RightColumn
 		}
-		if joins[i].LeftAlias != joins[j].LeftAlias {
-			return joins[i].LeftAlias < joins[j].LeftAlias
+		if a.LeftAlias != b.LeftAlias {
+			return a.LeftAlias < b.LeftAlias
 		}
-		return joins[i].RightAlias < joins[j].RightAlias
+		return a.RightAlias < b.RightAlias
 	})
 
 	aliasBindings := make([]aliasBinding, 0, len(aliasToTable))
@@ -174,10 +175,11 @@ func buildContext(meta *parser.QueryMetadata, sql string, cursor int) completion
 		})
 	}
 	sort.Slice(aliasBindings, func(i, j int) bool {
-		if aliasBindings[i].Alias != aliasBindings[j].Alias {
-			return aliasBindings[i].Alias < aliasBindings[j].Alias
+		a, b := aliasBindings[i], aliasBindings[j]
+		if a.Alias != b.Alias {
+			return a.Alias < b.Alias
 		}
-		return aliasBindings[i].Table < aliasBindings[j].Table
+		return a.Table < b.Table
 	})
 
 	return completionContext{

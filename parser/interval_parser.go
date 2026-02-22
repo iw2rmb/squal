@@ -8,6 +8,18 @@ import (
 	"time"
 )
 
+var (
+	intervalRegex    = regexp.MustCompile(`(?i)^\s*interval\s+['"]([^'"]+)['"]\s*$`)
+	castRegex        = regexp.MustCompile(`(?i)^\s*['"]([^'"]+)['"]\s*::\s*interval\s*$`)
+	bareQuotedRegex  = regexp.MustCompile(`(?i)^\s*['"]([^'"]+)['"]\s*$`)
+	iso8601Regex     = regexp.MustCompile(`(?i)^\s*(?:interval\s+)?['"]?(P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+(?:\.[0-9]+)?S)?)?)['"]?(?:\s*::\s*interval)?\s*$`)
+	componentRegex   = regexp.MustCompile(`(?i)(-?\d+(?:\.\d+)?)\s*(years?|mons?|months?|weeks?|days?|hours?|hrs?|h|minutes?|mins?|m|seconds?|secs?|s)`)
+	makeIntervalRe   = regexp.MustCompile(`(?i)^make_interval\s*\(\s*(.+?)\s*\)\s*$`)
+	paramRegex       = regexp.MustCompile(`(?i)(years?|months?|weeks?|days?|hours?|mins?|secs?)\s*=>\s*(\d+(?:\.\d+)?)`)
+	iso8601DateRegex = regexp.MustCompile(`(?:(\d+(?:\.\d+)?)Y)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)D)?`)
+	iso8601TimeRegex = regexp.MustCompile(`(?:(\d+(?:\.\d+)?)H)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)S)?`)
+)
+
 // ParseInterval parses a PostgreSQL INTERVAL expression and returns a time.Duration.
 //
 // Supported formats:
@@ -38,21 +50,18 @@ func ParseInterval(expr string) (time.Duration, error) {
 
 	// Pattern 1: interval '1 hour'
 	// Match: interval 'N unit' or interval "N unit"
-	intervalRegex := regexp.MustCompile(`(?i)^\s*interval\s+['"]([^'"]+)['"]\s*$`)
 	if matches := intervalRegex.FindStringSubmatch(normalized); matches != nil {
 		return parseIntervalString(matches[1])
 	}
 
 	// Pattern 2: '1 hour'::interval
 	// Match: 'N unit'::interval or "N unit"::interval
-	castRegex := regexp.MustCompile(`(?i)^\s*['"]([^'"]+)['"]\s*::\s*interval\s*$`)
 	if matches := castRegex.FindStringSubmatch(normalized); matches != nil {
 		return parseIntervalString(matches[1])
 	}
 
 	// Pattern 3: Bare quoted string '1 hour' or "1 hour" (without interval keyword or cast)
 	// This handles cases like '1 hour', '-1 day', '1 day 2 hours', etc.
-	bareQuotedRegex := regexp.MustCompile(`(?i)^\s*['"]([^'"]+)['"]\s*$`)
 	if matches := bareQuotedRegex.FindStringSubmatch(normalized); matches != nil {
 		// Check if it's an ISO 8601 format before treating as interval string
 		inner := matches[1]
@@ -72,7 +81,6 @@ func ParseInterval(expr string) (time.Duration, error) {
 	// Pattern 5: ISO 8601 format (e.g., 'PT1H', 'P1D', 'P1DT2H30M')
 	// Check for quoted ISO 8601 within interval or cast syntax
 	// Note: This pattern intentionally excludes ISO 'W' weeks designator.
-	iso8601Regex := regexp.MustCompile(`(?i)^\s*(?:interval\s+)?['"]?(P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+(?:\.[0-9]+)?S)?)?)['"]?(?:\s*::\s*interval)?\s*$`)
 	if matches := iso8601Regex.FindStringSubmatch(normalized); len(matches) > 1 {
 		return parseISO8601Interval(matches[1])
 	}
@@ -100,11 +108,6 @@ func parseIntervalString(s string) (time.Duration, error) {
 		// Remove the leading minus and any following whitespace
 		s = strings.TrimSpace(s[1:])
 	}
-
-	// Regular expression to match one or more interval components
-	// Format: "N unit" where N is an integer or decimal, unit is a time unit
-	// Updated to support optional negative sign for each component
-	componentRegex := regexp.MustCompile(`(?i)(-?\d+(?:\.\d+)?)\s*(years?|mons?|months?|weeks?|days?|hours?|hrs?|h|minutes?|mins?|m|seconds?|secs?|s)`)
 
 	matches := componentRegex.FindAllStringSubmatch(s, -1)
 	if len(matches) == 0 {
@@ -173,16 +176,13 @@ func parseDurationForUnit(value float64, unit string) (time.Duration, error) {
 // Supported parameters: years, months, weeks, days, hours, mins, secs.
 func parseMakeInterval(expr string) (time.Duration, error) {
 	// Extract the content inside make_interval(...)
-	makeIntervalRegex := regexp.MustCompile(`(?i)^make_interval\s*\(\s*(.+?)\s*\)\s*$`)
-	matches := makeIntervalRegex.FindStringSubmatch(expr)
+	matches := makeIntervalRe.FindStringSubmatch(expr)
 	if len(matches) < 2 {
 		return 0, fmt.Errorf("invalid make_interval format: %q", expr)
 	}
 
 	argsStr := matches[1]
 
-	// Parse named parameters: param => value
-	paramRegex := regexp.MustCompile(`(?i)(years?|months?|weeks?|days?|hours?|mins?|secs?)\s*=>\s*(\d+(?:\.\d+)?)`)
 	paramMatches := paramRegex.FindAllStringSubmatch(argsStr, -1)
 
 	if len(paramMatches) == 0 {
@@ -275,9 +275,7 @@ func parseISO8601Interval(s string) (time.Duration, error) {
 	// Parse date part: [n]Y[n]M[n]D
 	// Note: In ISO 8601, M in date part means months, M in time part means minutes
 	if datePart != "" {
-		// Match years, months, days in order
-		dateRegex := regexp.MustCompile(`(?:(\d+(?:\.\d+)?)Y)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)D)?`)
-		matches := dateRegex.FindStringSubmatch(datePart)
+		matches := iso8601DateRegex.FindStringSubmatch(datePart)
 
 		if matches != nil {
 			// Years
@@ -311,9 +309,7 @@ func parseISO8601Interval(s string) (time.Duration, error) {
 
 	// Parse time part: [n]H[n]M[n]S
 	if timePart != "" {
-		// Match hours, minutes, seconds in order
-		timeRegex := regexp.MustCompile(`(?:(\d+(?:\.\d+)?)H)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)S)?`)
-		matches := timeRegex.FindStringSubmatch(timePart)
+		matches := iso8601TimeRegex.FindStringSubmatch(timePart)
 
 		if matches != nil {
 			// Hours

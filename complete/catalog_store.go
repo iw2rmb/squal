@@ -40,7 +40,7 @@ func (s *catalogStore) get(version CatalogVersion) (CatalogSnapshot, bool) {
 	if !ok {
 		return CatalogSnapshot{}, false
 	}
-	return canonicalizeCatalogSnapshot(snapshot), true
+	return snapshot, true
 }
 
 func canonicalizeCatalogSnapshot(snapshot CatalogSnapshot) CatalogSnapshot {

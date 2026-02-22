@@ -94,23 +94,17 @@ func (p *PGQueryParser) extractGroupItem(node *pg_query.Node, targetList []*pg_q
 }
 
 // extractColumnFromRef extracts column and table names from a ColumnRef node.
+// Delegates to columnRefToNames for the actual field extraction.
 func (p *PGQueryParser) extractColumnFromRef(cr *pg_query.ColumnRef) (column, table string) {
-	if cr == nil || len(cr.Fields) == 0 {
+	if cr == nil {
 		return "", ""
 	}
-	if len(cr.Fields) == 1 {
-		if s := cr.Fields[0].GetString_(); s != nil {
-			return s.Sval, ""
-		}
+	node := &pg_query.Node{Node: &pg_query.Node_ColumnRef{ColumnRef: cr}}
+	names, ok := p.columnRefToNames(node)
+	if !ok {
 		return "", ""
 	}
-	if s := cr.Fields[0].GetString_(); s != nil {
-		table = s.Sval
-	}
-	if s := cr.Fields[len(cr.Fields)-1].GetString_(); s != nil {
-		column = s.Sval
-	}
-	return column, table
+	return names.column, names.table
 }
 
 // findMatchingAlias returns the alias of a SELECT target that matches a given column/table.
