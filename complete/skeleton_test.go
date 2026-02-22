@@ -3,8 +3,8 @@ package complete
 import (
 	"testing"
 
-	"github.com/iw2rmb/sql/core"
-	"github.com/iw2rmb/sql/parser"
+	"github.com/iw2rmb/squal/core"
+	"github.com/iw2rmb/squal/parser"
 )
 
 func TestTypesContractCompile(t *testing.T) {

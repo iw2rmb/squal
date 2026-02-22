@@ -40,8 +40,8 @@ Legend: [ ] todo, [x] done.
 - [x] Extract parser DTOs into `parser` module — Move metadata/analysis types to shared ownership.
   - Repository: `sql`
   - Component: `parser`
-  - Scope: Add `parser/types.go` by porting DTOs from `../../mill/internal/mill/parser/types.go`; replace enum imports with `github.com/iw2rmb/sql/core`; preserve JSON tags and field names.
-  - Snippets: `import "github.com/iw2rmb/sql/core"`; `type JoinCondition struct { Type core.JoinType ... }`
+  - Scope: Add `parser/types.go` by porting DTOs from `../../mill/internal/mill/parser/types.go`; replace enum imports with `github.com/iw2rmb/squal/core`; preserve JSON tags and field names.
+  - Snippets: `import "github.com/iw2rmb/squal/core"`; `type JoinCondition struct { Type core.JoinType ... }`
   - Tests: `go test ./parser/... -run Test.*Types` — DTO compile checks and serialization expectations pass.
 
 - [x] Extract interval parsing helpers into `parser` module — Preserve sliding-window duration semantics.
@@ -72,21 +72,21 @@ Legend: [ ] todo, [x] done.
 - [x] Migrate `mill` parser imports to shared module — Switch consumers from internal contracts to shared contracts.
   - Repository: `mill`
   - Component: all parser consumers
-  - Scope: Replace `github.com/iw2rmb/mill/internal/mill/parser` imports with `github.com/iw2rmb/sql/parser` across parser users (current baseline: 141 importing files). Keep behavior unchanged.
-  - Snippets: `import sqlparser "github.com/iw2rmb/sql/parser"`
+  - Scope: Replace `github.com/iw2rmb/mill/internal/mill/parser` imports with `github.com/iw2rmb/squal/parser` across parser users (current baseline: 141 importing files). Keep behavior unchanged.
+  - Snippets: `import sqlparser "github.com/iw2rmb/squal/parser"`
   - Tests: `go test ./...` (or scoped packages below) — build and parser-dependent tests remain green after import swap.
 
 - [x] Migrate parser-related enums in `mill` to shared `core` — Remove remaining parser DTO dependency on internal types.
   - Repository: `mill`
   - Component: parser DTO call sites + postgres parser implementation
-  - Scope: Replace parser-surface usage of `github.com/iw2rmb/mill/internal/mill/types` with `github.com/iw2rmb/sql/core` where it participates in parser DTOs/contracts.
-  - Snippets: `import sqlcore "github.com/iw2rmb/sql/core"`
+  - Scope: Replace parser-surface usage of `github.com/iw2rmb/mill/internal/mill/types` with `github.com/iw2rmb/squal/core` where it participates in parser DTOs/contracts.
+  - Snippets: `import sqlcore "github.com/iw2rmb/squal/core"`
   - Tests: `go test ./internal/mill/...` — compile-time type consistency is preserved for parser metadata flows.
 
 - [x] Rebind PostgreSQL parser implementation in `mill` to shared interface — Keep Phase 1 implementation location while adopting shared contract.
   - Repository: `mill`
   - Component: `internal/mill/db/postgres`
-  - Scope: Keep `parser_pgquery_*.go` in `mill`; update types/imports to implement `github.com/iw2rmb/sql/parser.Parser`; keep CGO build-tag registration in `parser_cgo.go` but wired to shared `RegisterTestParserFactory`.
+  - Scope: Keep `parser_pgquery_*.go` in `mill`; update types/imports to implement `github.com/iw2rmb/squal/parser.Parser`; keep CGO build-tag registration in `parser_cgo.go` but wired to shared `RegisterTestParserFactory`.
   - Snippets: `func init() { parser.RegisterTestParserFactory(...) }` where `parser` import points to shared module
   - Tests: `go test ./internal/mill/db/postgres/...` — parser implementation compiles and tests pass with shared contract types.
 

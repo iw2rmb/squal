@@ -71,7 +71,7 @@ Owns neutral enum types currently taken from `mill/internal/mill/types/sql.go`:
 ## Migration Design For `mill` (Phase 1 Consumer)
 
 1. Add dependency on `parser` (and `core` if separate module).
-2. Replace imports of `github.com/iw2rmb/mill/internal/mill/parser` with `github.com/iw2rmb/sql/parser`.
+2. Replace imports of `github.com/iw2rmb/mill/internal/mill/parser` with `github.com/iw2rmb/squal/parser`.
 3. Replace `github.com/iw2rmb/mill/internal/mill/types` usage only where tied to parser DTOs with `core` enums.
 4. Keep current PG parser implementation in `mill/internal/mill/db/postgres` and make it implement `parser.Parser`.
 5. Keep CGO build-tag registration (`RegisterTestParserFactory`) in `mill` until PG implementation is moved in Phase 2.

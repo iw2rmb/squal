@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"sync"
 
-	"github.com/iw2rmb/sql/core"
+	"github.com/iw2rmb/squal/core"
 )
 
 type catalogStore struct {

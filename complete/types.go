@@ -1,6 +1,6 @@
 package complete
 
-import "github.com/iw2rmb/sql/core"
+import "github.com/iw2rmb/squal/core"
 
 // CatalogSnapshot is the completion catalog input.
 type CatalogSnapshot struct {

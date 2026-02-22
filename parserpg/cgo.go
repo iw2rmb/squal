@@ -6,7 +6,7 @@ package parserpg
 import (
 	pgquery "github.com/pganalyze/pg_query_go/v6"
 
-	"github.com/iw2rmb/sql/parser"
+	"github.com/iw2rmb/squal/parser"
 )
 
 // PGQueryParser is a PostgreSQL parser implementation backed by pg_query.

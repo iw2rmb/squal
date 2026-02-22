@@ -6,8 +6,8 @@ package parser_test
 import (
 	"testing"
 
-	"github.com/iw2rmb/sql/parser"
-	"github.com/iw2rmb/sql/parserpg"
+	"github.com/iw2rmb/squal/parser"
+	"github.com/iw2rmb/squal/parserpg"
 )
 
 func TestNewTestParserUsesParserPGFactory(t *testing.T) {

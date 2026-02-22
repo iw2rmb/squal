@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/iw2rmb/sql/parser"
+	"github.com/iw2rmb/squal/parser"
 )
 
 func (e *EngineImpl) buildContext(req Request) (completionContext, []Diagnostic) {

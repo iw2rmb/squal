@@ -1,6 +1,6 @@
 package complete
 
-import "github.com/iw2rmb/sql/parser"
+import "github.com/iw2rmb/squal/parser"
 
 // Engine defines completion lifecycle and request handlers.
 type Engine interface {

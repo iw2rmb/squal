@@ -3,7 +3,7 @@ package complete
 import (
 	"errors"
 
-	"github.com/iw2rmb/sql/parser"
+	"github.com/iw2rmb/squal/parser"
 )
 
 type parserStub struct {

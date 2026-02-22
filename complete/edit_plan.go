@@ -4,7 +4,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/iw2rmb/sql/core"
+	"github.com/iw2rmb/squal/core"
 )
 
 func planSingleEdit(req Request, accepted Candidate) (EditPlan, []Diagnostic) {

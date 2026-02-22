@@ -30,7 +30,7 @@ Legend: [ ] todo, [x] done.
 - [x] Port PostgreSQL parser implementation from `mill` — Make `parserpg` the canonical PG parser owner.
   - Repository: `sql`
   - Component: `parserpg`
-  - Scope: Port parser logic from `../mill/internal/mill/db/postgres/parser_pgquery_*.go`; adapt imports to `github.com/iw2rmb/sql/parser` and `github.com/iw2rmb/sql/core`.
+  - Scope: Port parser logic from `../mill/internal/mill/db/postgres/parser_pgquery_*.go`; adapt imports to `github.com/iw2rmb/squal/parser` and `github.com/iw2rmb/squal/core`.
   - Snippets: `func (p *PGQueryParser) ExtractMetadata(...)`
   - Tests: `CGO_ENABLED=1 go test ./parserpg/...` — core parser behavior compiles and passes parserpg tests.
 
@@ -51,8 +51,8 @@ Legend: [ ] todo, [x] done.
 - [x] Migrate `mill` to consume `parserpg` implementation — Remove parser implementation ownership from `mill`.
   - Repository: `mill`
   - Component: parser integration points
-  - Scope: Switch `mill` parser construction/import wiring to `github.com/iw2rmb/sql/parserpg`; remove migrated parser implementation files from `mill` ownership.
-  - Snippets: `import "github.com/iw2rmb/sql/parserpg"`
+  - Scope: Switch `mill` parser construction/import wiring to `github.com/iw2rmb/squal/parserpg`; remove migrated parser implementation files from `mill` ownership.
+  - Snippets: `import "github.com/iw2rmb/squal/parserpg"`
   - Tests: `go test ./internal/mill/db/postgres/...` — `mill` compiles and uses shared parser implementation path.
 
 - [x] Run focused parity validation in `mill` — Confirm no regressions in parser-dependent subsystems.

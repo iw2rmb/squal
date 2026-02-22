@@ -1,4 +1,4 @@
-module github.com/iw2rmb/sql
+module github.com/iw2rmb/squal
 
 go 1.26
 

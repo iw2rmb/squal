@@ -9,8 +9,8 @@ import (
 
 	pg_query "github.com/pganalyze/pg_query_go/v6"
 
-	"github.com/iw2rmb/sql/core"
-	"github.com/iw2rmb/sql/parser"
+	"github.com/iw2rmb/squal/core"
+	"github.com/iw2rmb/squal/parser"
 )
 
 // extractJoinConditionsFromFromClause walks FROM/JOIN nodes and appends join relationships

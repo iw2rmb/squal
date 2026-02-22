@@ -6,7 +6,7 @@ package parserpg
 import (
 	"testing"
 
-	"github.com/iw2rmb/sql/parser"
+	"github.com/iw2rmb/squal/parser"
 )
 
 func TestPGQueryParser_ExtractJSONPaths(t *testing.T) {
