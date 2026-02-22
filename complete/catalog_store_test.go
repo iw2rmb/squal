@@ -9,7 +9,7 @@ import (
 func TestCatalogInit(t *testing.T) {
 	t.Parallel()
 
-	engine := NewEngine(Config{})
+	engine := NewEngine(Config{Parser: healthyParserStub()})
 	version, err := engine.InitCatalog(catalogSnapshotVariantA())
 	if err != nil {
 		t.Fatalf("InitCatalog() error = %v", err)
@@ -34,7 +34,7 @@ func TestCatalogInit(t *testing.T) {
 func TestCatalogUpdate(t *testing.T) {
 	t.Parallel()
 
-	engine := NewEngine(Config{})
+	engine := NewEngine(Config{Parser: healthyParserStub()})
 
 	initialVersion, err := engine.InitCatalog(catalogSnapshotVariantA())
 	if err != nil {
@@ -73,8 +73,8 @@ func TestCatalogUpdate(t *testing.T) {
 func TestCatalogVersionDeterminism(t *testing.T) {
 	t.Parallel()
 
-	engineA := NewEngine(Config{})
-	engineB := NewEngine(Config{})
+	engineA := NewEngine(Config{Parser: healthyParserStub()})
+	engineB := NewEngine(Config{Parser: healthyParserStub()})
 
 	versionA, err := engineA.InitCatalog(catalogSnapshotVariantA())
 	if err != nil {
@@ -92,7 +92,7 @@ func TestCatalogVersionDeterminism(t *testing.T) {
 func TestCatalogVersionUnknown(t *testing.T) {
 	t.Parallel()
 
-	engine := NewEngine(Config{})
+	engine := NewEngine(Config{Parser: healthyParserStub()})
 	resp, err := engine.Complete(Request{
 		SQL:            "select 1",
 		CursorByte:     0,

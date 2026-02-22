@@ -42,8 +42,10 @@ func (e *EngineImpl) Complete(req Request) (Response, error) {
 		}, nil
 	}
 
+	_, contextDiags := e.buildContext(normalized)
 	return Response{
-		Candidates: []Candidate{},
+		Candidates:  []Candidate{},
+		Diagnostics: contextDiags,
 	}, nil
 }
 

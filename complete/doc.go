@@ -2,7 +2,8 @@
 //
 // This package defines the completion-facing API surface and diagnostics.
 // It provides deterministic catalog lifecycle storage and versioning.
-// Later roadmap steps add parser-context binding, ranking, and deterministic
+// It includes parser-context extraction scaffolding.
+// Later roadmap steps add candidate generation, ranking, and deterministic
 // edit planning behavior.
 //
 // Dependency boundary:

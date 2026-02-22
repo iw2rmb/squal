@@ -51,7 +51,7 @@ Legend: [ ] todo, [x] done.
   - Snippets: `func validateRequest(req Request) []Diagnostic`
   - Tests: `go test ./complete/... -run 'Test(ValidateRequest|InvalidCursorSpan|CatalogVersionUnknown)'` — invalid requests fail with stable diagnostic codes and zero edits.
 
-- [ ] Implement parser-context extraction for completion — Build deterministic completion context from parser outputs and cursor position.
+- [x] Implement parser-context extraction for completion — Build deterministic completion context from parser outputs and cursor position.
   - Repository: `sql`
   - Component: `complete`, `parser` integration
   - Scope: Use `parser.Parser.ExtractMetadata` from `parser/interface.go` and `parser.QueryMetadata` from `parser/types.go` to derive active scope context (tables, aliases, projection targets, predicates, join conditions).
