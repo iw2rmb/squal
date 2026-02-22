@@ -44,7 +44,7 @@ Legend: [ ] todo, [x] done.
   - Snippets: `type catalogStore struct { versions map[CatalogVersion]CatalogSnapshot }`
   - Tests: `go test ./complete/... -run 'Test(CatalogInit|CatalogUpdate|CatalogVersionDeterminism)'` — equivalent snapshots yield equivalent versions; unknown versions return deterministic diagnostics.
 
-- [ ] Implement request normalization and cursor validation — Enforce byte-safe request preconditions before parse/context work.
+- [x] Implement request normalization and cursor validation — Enforce byte-safe request preconditions before parse/context work.
   - Repository: `sql`
   - Component: `complete`
   - Scope: Add validation for SQL snapshot presence, cursor byte bounds, catalog version resolution, and deterministic request canonicalization.

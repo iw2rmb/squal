@@ -26,9 +26,18 @@ func (e *EngineImpl) UpdateCatalog(snapshot CatalogSnapshot) (CatalogVersion, er
 }
 
 func (e *EngineImpl) Complete(req Request) (Response, error) {
-	_, diags, ok := e.resolveCatalog(req.CatalogVersion)
+	normalized := normalizeRequest(req)
+	if diags := validateRequest(normalized); len(diags) > 0 {
+		return Response{
+			Candidates:  []Candidate{},
+			Diagnostics: diags,
+		}, nil
+	}
+
+	_, diags, ok := e.resolveCatalog(normalized.CatalogVersion)
 	if !ok {
 		return Response{
+			Candidates:  []Candidate{},
 			Diagnostics: diags,
 		}, nil
 	}
@@ -39,7 +48,12 @@ func (e *EngineImpl) Complete(req Request) (Response, error) {
 }
 
 func (e *EngineImpl) PlanEdit(req Request, accepted Candidate) (EditPlan, []Diagnostic, error) {
-	_, diags, ok := e.resolveCatalog(req.CatalogVersion)
+	normalized := normalizeRequest(req)
+	if diags := validateRequest(normalized); len(diags) > 0 {
+		return EditPlan{}, diags, nil
+	}
+
+	_, diags, ok := e.resolveCatalog(normalized.CatalogVersion)
 	if !ok {
 		return EditPlan{}, diags, nil
 	}
