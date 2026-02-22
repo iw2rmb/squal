@@ -1,0 +1,26 @@
+{
+  "plan": {
+    "edits": [
+      {
+        "span": {
+          "start_byte": 9,
+          "end_byte": 11
+        },
+        "new_text": "customer_id"
+      }
+    ],
+    "replacement_span": {
+      "start_byte": 9,
+      "end_byte": 11
+    },
+    "validation": {
+      "in_bounds": true,
+      "non_overlapping": true
+    }
+  },
+  "request_span": {
+    "start_byte": 9,
+    "end_byte": 11
+  },
+  "request_sql": "select o.cu from public.orders o"
+}

@@ -86,7 +86,7 @@ Legend: [ ] todo, [x] done.
   - Snippets: `resp.Source = "parser_fallback"`
   - Tests: `go test ./complete/... -run 'Test(ProviderUnavailableFallback|ProviderSuccessPath)'` — fallback is deterministic and preserves non-empty completion path when possible.
 
-- [ ] Add fixture, golden, and fuzz coverage for determinism and Unicode correctness — Lock behavior across edge cases and regression surfaces.
+- [x] Add fixture, golden, and fuzz coverage for determinism and Unicode correctness — Lock behavior across edge cases and regression surfaces.
   - Repository: `sql`
   - Component: `complete` tests
   - Scope: Add `complete/testdata` fixtures for candidate ordering and planned edits; add fuzz/property coverage for cursor bounds and mixed rune-width SQL tokens.

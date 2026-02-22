@@ -1,0 +1,314 @@
+{
+  "source": "parser",
+  "candidates": [
+    {
+      "id": "column:c.email",
+      "label": "c.email",
+      "insert_text": "c.email",
+      "kind": "column",
+      "score": 75,
+      "score_components": {
+        "context": 55,
+        "catalog": 20
+      },
+      "sort_key": {
+        "kind_priority": 30,
+        "label_lexical": "c.email",
+        "insert_lexical": "c.email"
+      },
+      "source": "catalog"
+    },
+    {
+      "id": "column:c.id",
+      "label": "c.id",
+      "insert_text": "c.id",
+      "kind": "column",
+      "score": 75,
+      "score_components": {
+        "context": 55,
+        "catalog": 20
+      },
+      "sort_key": {
+        "kind_priority": 30,
+        "label_lexical": "c.id",
+        "insert_lexical": "c.id"
+      },
+      "source": "catalog"
+    },
+    {
+      "id": "column:customers.email",
+      "label": "customers.email",
+      "insert_text": "customers.email",
+      "kind": "column",
+      "score": 75,
+      "score_components": {
+        "context": 55,
+        "catalog": 20
+      },
+      "sort_key": {
+        "kind_priority": 30,
+        "label_lexical": "customers.email",
+        "insert_lexical": "customers.email"
+      },
+      "source": "catalog"
+    },
+    {
+      "id": "column:customers.id",
+      "label": "customers.id",
+      "insert_text": "customers.id",
+      "kind": "column",
+      "score": 75,
+      "score_components": {
+        "context": 55,
+        "catalog": 20
+      },
+      "sort_key": {
+        "kind_priority": 30,
+        "label_lexical": "customers.id",
+        "insert_lexical": "customers.id"
+      },
+      "source": "catalog"
+    },
+    {
+      "id": "column:o.customer_id",
+      "label": "o.customer_id",
+      "insert_text": "o.customer_id",
+      "kind": "column",
+      "score": 75,
+      "score_components": {
+        "context": 55,
+        "catalog": 20
+      },
+      "sort_key": {
+        "kind_priority": 30,
+        "label_lexical": "o.customer_id",
+        "insert_lexical": "o.customer_id"
+      },
+      "source": "catalog"
+    },
+    {
+      "id": "column:o.id",
+      "label": "o.id",
+      "insert_text": "o.id",
+      "kind": "column",
+      "score": 75,
+      "score_components": {
+        "context": 55,
+        "catalog": 20
+      },
+      "sort_key": {
+        "kind_priority": 30,
+        "label_lexical": "o.id",
+        "insert_lexical": "o.id"
+      },
+      "source": "catalog"
+    },
+    {
+      "id": "column:o.total",
+      "label": "o.total",
+      "insert_text": "o.total",
+      "kind": "column",
+      "score": 75,
+      "score_components": {
+        "context": 55,
+        "catalog": 20
+      },
+      "sort_key": {
+        "kind_priority": 30,
+        "label_lexical": "o.total",
+        "insert_lexical": "o.total"
+      },
+      "source": "catalog"
+    },
+    {
+      "id": "column:orders.customer_id",
+      "label": "orders.customer_id",
+      "insert_text": "orders.customer_id",
+      "kind": "column",
+      "score": 75,
+      "score_components": {
+        "context": 55,
+        "catalog": 20
+      },
+      "sort_key": {
+        "kind_priority": 30,
+        "label_lexical": "orders.customer_id",
+        "insert_lexical": "orders.customer_id"
+      },
+      "source": "catalog"
+    },
+    {
+      "id": "column:orders.id",
+      "label": "orders.id",
+      "insert_text": "orders.id",
+      "kind": "column",
+      "score": 75,
+      "score_components": {
+        "context": 55,
+        "catalog": 20
+      },
+      "sort_key": {
+        "kind_priority": 30,
+        "label_lexical": "orders.id",
+        "insert_lexical": "orders.id"
+      },
+      "source": "catalog"
+    },
+    {
+      "id": "column:orders.total",
+      "label": "orders.total",
+      "insert_text": "orders.total",
+      "kind": "column",
+      "score": 75,
+      "score_components": {
+        "context": 55,
+        "catalog": 20
+      },
+      "sort_key": {
+        "kind_priority": 30,
+        "label_lexical": "orders.total",
+        "insert_lexical": "orders.total"
+      },
+      "source": "catalog"
+    },
+    {
+      "id": "table:analytics.events",
+      "label": "analytics.events",
+      "insert_text": "events",
+      "kind": "table",
+      "score": 28,
+      "score_components": {
+        "context": 8,
+        "catalog": 20
+      },
+      "sort_key": {
+        "kind_priority": 20,
+        "label_lexical": "analytics.events",
+        "insert_lexical": "events"
+      },
+      "source": "catalog"
+    },
+    {
+      "id": "table:public.customers",
+      "label": "public.customers",
+      "insert_text": "customers",
+      "kind": "table",
+      "score": 28,
+      "score_components": {
+        "context": 8,
+        "catalog": 20
+      },
+      "sort_key": {
+        "kind_priority": 20,
+        "label_lexical": "public.customers",
+        "insert_lexical": "customers"
+      },
+      "source": "catalog"
+    },
+    {
+      "id": "table:public.orders",
+      "label": "public.orders",
+      "insert_text": "orders",
+      "kind": "table",
+      "score": 28,
+      "score_components": {
+        "context": 8,
+        "catalog": 20
+      },
+      "sort_key": {
+        "kind_priority": 20,
+        "label_lexical": "public.orders",
+        "insert_lexical": "orders"
+      },
+      "source": "catalog"
+    },
+    {
+      "id": "schema:analytics",
+      "label": "analytics",
+      "insert_text": "analytics",
+      "kind": "schema",
+      "score": 25,
+      "score_components": {
+        "context": 5,
+        "catalog": 20
+      },
+      "sort_key": {
+        "kind_priority": 10,
+        "label_lexical": "analytics",
+        "insert_lexical": "analytics"
+      },
+      "source": "catalog"
+    },
+    {
+      "id": "schema:public",
+      "label": "public",
+      "insert_text": "public",
+      "kind": "schema",
+      "score": 25,
+      "score_components": {
+        "context": 5,
+        "catalog": 20
+      },
+      "sort_key": {
+        "kind_priority": 10,
+        "label_lexical": "public",
+        "insert_lexical": "public"
+      },
+      "source": "catalog"
+    },
+    {
+      "id": "snippet:join_on",
+      "label": "JOIN ... ON ...",
+      "insert_text": "JOIN  ON ",
+      "kind": "snippet",
+      "score": 9,
+      "score_components": {
+        "context": 6,
+        "catalog": 8,
+        "snippet": -5
+      },
+      "sort_key": {
+        "kind_priority": 50,
+        "label_lexical": "join ... on ...",
+        "insert_lexical": "join  on "
+      },
+      "source": "snippet"
+    },
+    {
+      "id": "snippet:select_from",
+      "label": "SELECT ... FROM ...",
+      "insert_text": "SELECT * FROM ",
+      "kind": "snippet",
+      "score": 9,
+      "score_components": {
+        "context": 6,
+        "catalog": 8,
+        "snippet": -5
+      },
+      "sort_key": {
+        "kind_priority": 50,
+        "label_lexical": "select ... from ...",
+        "insert_lexical": "select * from "
+      },
+      "source": "snippet"
+    },
+    {
+      "id": "snippet:where",
+      "label": "WHERE ...",
+      "insert_text": "WHERE ",
+      "kind": "snippet",
+      "score": 9,
+      "score_components": {
+        "context": 6,
+        "catalog": 8,
+        "snippet": -5
+      },
+      "sort_key": {
+        "kind_priority": 50,
+        "label_lexical": "where ...",
+        "insert_lexical": "where "
+      },
+      "source": "snippet"
+    }
+  ]
+}
