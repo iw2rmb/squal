@@ -1,7 +1,7 @@
 {
-  "scenario": "basic where",
-  "sql": "select o.id from orders o join customers c on o.customer_id = c.id where ",
-  "active_clause": "where",
+  "scenario": "join on context",
+  "sql": "select o.id from orders o join customers c on ",
+  "active_clause": "join_on",
   "source": "parser",
   "candidates": [
     {
@@ -9,9 +9,9 @@
       "label": "c.email",
       "insert_text": "c.email",
       "kind": "column",
-      "score": 75,
+      "score": 80,
       "score_components": {
-        "context": 55,
+        "context": 60,
         "catalog": 20
       },
       "sort_key": {
@@ -26,9 +26,9 @@
       "label": "c.id",
       "insert_text": "c.id",
       "kind": "column",
-      "score": 75,
+      "score": 80,
       "score_components": {
-        "context": 55,
+        "context": 60,
         "catalog": 20
       },
       "sort_key": {
@@ -43,9 +43,9 @@
       "label": "customers.email",
       "insert_text": "customers.email",
       "kind": "column",
-      "score": 75,
+      "score": 80,
       "score_components": {
-        "context": 55,
+        "context": 60,
         "catalog": 20
       },
       "sort_key": {
@@ -60,9 +60,9 @@
       "label": "customers.id",
       "insert_text": "customers.id",
       "kind": "column",
-      "score": 75,
+      "score": 80,
       "score_components": {
-        "context": 55,
+        "context": 60,
         "catalog": 20
       },
       "sort_key": {
@@ -77,9 +77,9 @@
       "label": "o.customer_id",
       "insert_text": "o.customer_id",
       "kind": "column",
-      "score": 75,
+      "score": 80,
       "score_components": {
-        "context": 55,
+        "context": 60,
         "catalog": 20
       },
       "sort_key": {
@@ -94,9 +94,9 @@
       "label": "o.id",
       "insert_text": "o.id",
       "kind": "column",
-      "score": 75,
+      "score": 80,
       "score_components": {
-        "context": 55,
+        "context": 60,
         "catalog": 20
       },
       "sort_key": {
@@ -111,9 +111,9 @@
       "label": "o.total",
       "insert_text": "o.total",
       "kind": "column",
-      "score": 75,
+      "score": 80,
       "score_components": {
-        "context": 55,
+        "context": 60,
         "catalog": 20
       },
       "sort_key": {
@@ -128,9 +128,9 @@
       "label": "orders.customer_id",
       "insert_text": "orders.customer_id",
       "kind": "column",
-      "score": 75,
+      "score": 80,
       "score_components": {
-        "context": 55,
+        "context": 60,
         "catalog": 20
       },
       "sort_key": {
@@ -145,9 +145,9 @@
       "label": "orders.id",
       "insert_text": "orders.id",
       "kind": "column",
-      "score": 75,
+      "score": 80,
       "score_components": {
-        "context": 55,
+        "context": 60,
         "catalog": 20
       },
       "sort_key": {
@@ -162,9 +162,9 @@
       "label": "orders.total",
       "insert_text": "orders.total",
       "kind": "column",
-      "score": 75,
+      "score": 80,
       "score_components": {
-        "context": 55,
+        "context": 60,
         "catalog": 20
       },
       "sort_key": {
@@ -175,64 +175,13 @@
       "source": "catalog"
     },
     {
-      "id": "table:analytics.events",
-      "label": "analytics.events",
-      "insert_text": "events",
-      "kind": "table",
-      "score": 28,
-      "score_components": {
-        "context": 8,
-        "catalog": 20
-      },
-      "sort_key": {
-        "kind_priority": 20,
-        "label_lexical": "analytics.events",
-        "insert_lexical": "events"
-      },
-      "source": "catalog"
-    },
-    {
-      "id": "table:public.customers",
-      "label": "public.customers",
-      "insert_text": "customers",
-      "kind": "table",
-      "score": 28,
-      "score_components": {
-        "context": 8,
-        "catalog": 20
-      },
-      "sort_key": {
-        "kind_priority": 20,
-        "label_lexical": "public.customers",
-        "insert_lexical": "customers"
-      },
-      "source": "catalog"
-    },
-    {
-      "id": "table:public.orders",
-      "label": "public.orders",
-      "insert_text": "orders",
-      "kind": "table",
-      "score": 28,
-      "score_components": {
-        "context": 8,
-        "catalog": 20
-      },
-      "sort_key": {
-        "kind_priority": 20,
-        "label_lexical": "public.orders",
-        "insert_lexical": "orders"
-      },
-      "source": "catalog"
-    },
-    {
       "id": "keyword:\u003c",
       "label": "\u003c",
       "insert_text": "\u003c ",
       "kind": "keyword",
-      "score": 12,
+      "score": 48,
       "score_components": {
-        "context": 4,
+        "context": 40,
         "catalog": 8
       },
       "sort_key": {
@@ -247,9 +196,9 @@
       "label": "\u003c=",
       "insert_text": "\u003c= ",
       "kind": "keyword",
-      "score": 12,
+      "score": 48,
       "score_components": {
-        "context": 4,
+        "context": 40,
         "catalog": 8
       },
       "sort_key": {
@@ -264,9 +213,9 @@
       "label": "\u003c\u003e",
       "insert_text": "\u003c\u003e ",
       "kind": "keyword",
-      "score": 12,
+      "score": 48,
       "score_components": {
-        "context": 4,
+        "context": 40,
         "catalog": 8
       },
       "sort_key": {
@@ -281,9 +230,9 @@
       "label": "=",
       "insert_text": "= ",
       "kind": "keyword",
-      "score": 12,
+      "score": 48,
       "score_components": {
-        "context": 4,
+        "context": 40,
         "catalog": 8
       },
       "sort_key": {
@@ -298,9 +247,9 @@
       "label": "\u003e",
       "insert_text": "\u003e ",
       "kind": "keyword",
-      "score": 12,
+      "score": 48,
       "score_components": {
-        "context": 4,
+        "context": 40,
         "catalog": 8
       },
       "sort_key": {
@@ -315,9 +264,9 @@
       "label": "\u003e=",
       "insert_text": "\u003e= ",
       "kind": "keyword",
-      "score": 12,
+      "score": 48,
       "score_components": {
-        "context": 4,
+        "context": 40,
         "catalog": 8
       },
       "sort_key": {
@@ -332,9 +281,9 @@
       "label": "AND",
       "insert_text": "AND ",
       "kind": "keyword",
-      "score": 12,
+      "score": 48,
       "score_components": {
-        "context": 4,
+        "context": 40,
         "catalog": 8
       },
       "sort_key": {
@@ -349,9 +298,9 @@
       "label": "BETWEEN",
       "insert_text": "BETWEEN ",
       "kind": "keyword",
-      "score": 12,
+      "score": 48,
       "score_components": {
-        "context": 4,
+        "context": 40,
         "catalog": 8
       },
       "sort_key": {
@@ -366,9 +315,9 @@
       "label": "IN",
       "insert_text": "IN ",
       "kind": "keyword",
-      "score": 12,
+      "score": 48,
       "score_components": {
-        "context": 4,
+        "context": 40,
         "catalog": 8
       },
       "sort_key": {
@@ -383,9 +332,9 @@
       "label": "IS",
       "insert_text": "IS ",
       "kind": "keyword",
-      "score": 12,
+      "score": 48,
       "score_components": {
-        "context": 4,
+        "context": 40,
         "catalog": 8
       },
       "sort_key": {
@@ -400,9 +349,9 @@
       "label": "LIKE",
       "insert_text": "LIKE ",
       "kind": "keyword",
-      "score": 12,
+      "score": 48,
       "score_components": {
-        "context": 4,
+        "context": 40,
         "catalog": 8
       },
       "sort_key": {
@@ -417,9 +366,9 @@
       "label": "NOT",
       "insert_text": "NOT ",
       "kind": "keyword",
-      "score": 12,
+      "score": 48,
       "score_components": {
-        "context": 4,
+        "context": 40,
         "catalog": 8
       },
       "sort_key": {
@@ -434,9 +383,9 @@
       "label": "OR",
       "insert_text": "OR ",
       "kind": "keyword",
-      "score": 12,
+      "score": 48,
       "score_components": {
-        "context": 4,
+        "context": 40,
         "catalog": 8
       },
       "sort_key": {

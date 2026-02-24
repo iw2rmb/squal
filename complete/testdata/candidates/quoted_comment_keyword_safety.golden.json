@@ -1,0 +1,476 @@
+{
+  "scenario": "quoted_comment_keyword_safety",
+  "cases": [
+    {
+      "name": "single quoted from does not switch clause",
+      "sql": "select 'from' as s where ",
+      "active_clause": "where",
+      "source": "parser",
+      "diagnostics": [
+        {
+          "code": "ParseDegraded",
+          "message": "parser metadata extraction failed"
+        }
+      ],
+      "candidates": [
+        {
+          "id": "keyword:\u003c",
+          "label": "\u003c",
+          "insert_text": "\u003c ",
+          "kind": "keyword",
+          "score": 12,
+          "score_components": {
+            "context": 4,
+            "catalog": 8
+          },
+          "sort_key": {
+            "kind_priority": 60,
+            "label_lexical": "\u003c",
+            "insert_lexical": "\u003c "
+          },
+          "source": "snippet"
+        },
+        {
+          "id": "keyword:\u003c=",
+          "label": "\u003c=",
+          "insert_text": "\u003c= ",
+          "kind": "keyword",
+          "score": 12,
+          "score_components": {
+            "context": 4,
+            "catalog": 8
+          },
+          "sort_key": {
+            "kind_priority": 60,
+            "label_lexical": "\u003c=",
+            "insert_lexical": "\u003c= "
+          },
+          "source": "snippet"
+        },
+        {
+          "id": "keyword:\u003c\u003e",
+          "label": "\u003c\u003e",
+          "insert_text": "\u003c\u003e ",
+          "kind": "keyword",
+          "score": 12,
+          "score_components": {
+            "context": 4,
+            "catalog": 8
+          },
+          "sort_key": {
+            "kind_priority": 60,
+            "label_lexical": "\u003c\u003e",
+            "insert_lexical": "\u003c\u003e "
+          },
+          "source": "snippet"
+        },
+        {
+          "id": "keyword:=",
+          "label": "=",
+          "insert_text": "= ",
+          "kind": "keyword",
+          "score": 12,
+          "score_components": {
+            "context": 4,
+            "catalog": 8
+          },
+          "sort_key": {
+            "kind_priority": 60,
+            "label_lexical": "=",
+            "insert_lexical": "= "
+          },
+          "source": "snippet"
+        },
+        {
+          "id": "keyword:\u003e",
+          "label": "\u003e",
+          "insert_text": "\u003e ",
+          "kind": "keyword",
+          "score": 12,
+          "score_components": {
+            "context": 4,
+            "catalog": 8
+          },
+          "sort_key": {
+            "kind_priority": 60,
+            "label_lexical": "\u003e",
+            "insert_lexical": "\u003e "
+          },
+          "source": "snippet"
+        },
+        {
+          "id": "keyword:\u003e=",
+          "label": "\u003e=",
+          "insert_text": "\u003e= ",
+          "kind": "keyword",
+          "score": 12,
+          "score_components": {
+            "context": 4,
+            "catalog": 8
+          },
+          "sort_key": {
+            "kind_priority": 60,
+            "label_lexical": "\u003e=",
+            "insert_lexical": "\u003e= "
+          },
+          "source": "snippet"
+        },
+        {
+          "id": "keyword:and",
+          "label": "AND",
+          "insert_text": "AND ",
+          "kind": "keyword",
+          "score": 12,
+          "score_components": {
+            "context": 4,
+            "catalog": 8
+          },
+          "sort_key": {
+            "kind_priority": 60,
+            "label_lexical": "and",
+            "insert_lexical": "and "
+          },
+          "source": "snippet"
+        },
+        {
+          "id": "keyword:between",
+          "label": "BETWEEN",
+          "insert_text": "BETWEEN ",
+          "kind": "keyword",
+          "score": 12,
+          "score_components": {
+            "context": 4,
+            "catalog": 8
+          },
+          "sort_key": {
+            "kind_priority": 60,
+            "label_lexical": "between",
+            "insert_lexical": "between "
+          },
+          "source": "snippet"
+        },
+        {
+          "id": "keyword:in",
+          "label": "IN",
+          "insert_text": "IN ",
+          "kind": "keyword",
+          "score": 12,
+          "score_components": {
+            "context": 4,
+            "catalog": 8
+          },
+          "sort_key": {
+            "kind_priority": 60,
+            "label_lexical": "in",
+            "insert_lexical": "in "
+          },
+          "source": "snippet"
+        },
+        {
+          "id": "keyword:is",
+          "label": "IS",
+          "insert_text": "IS ",
+          "kind": "keyword",
+          "score": 12,
+          "score_components": {
+            "context": 4,
+            "catalog": 8
+          },
+          "sort_key": {
+            "kind_priority": 60,
+            "label_lexical": "is",
+            "insert_lexical": "is "
+          },
+          "source": "snippet"
+        },
+        {
+          "id": "keyword:like",
+          "label": "LIKE",
+          "insert_text": "LIKE ",
+          "kind": "keyword",
+          "score": 12,
+          "score_components": {
+            "context": 4,
+            "catalog": 8
+          },
+          "sort_key": {
+            "kind_priority": 60,
+            "label_lexical": "like",
+            "insert_lexical": "like "
+          },
+          "source": "snippet"
+        },
+        {
+          "id": "keyword:not",
+          "label": "NOT",
+          "insert_text": "NOT ",
+          "kind": "keyword",
+          "score": 12,
+          "score_components": {
+            "context": 4,
+            "catalog": 8
+          },
+          "sort_key": {
+            "kind_priority": 60,
+            "label_lexical": "not",
+            "insert_lexical": "not "
+          },
+          "source": "snippet"
+        },
+        {
+          "id": "keyword:or",
+          "label": "OR",
+          "insert_text": "OR ",
+          "kind": "keyword",
+          "score": 12,
+          "score_components": {
+            "context": 4,
+            "catalog": 8
+          },
+          "sort_key": {
+            "kind_priority": 60,
+            "label_lexical": "or",
+            "insert_lexical": "or "
+          },
+          "source": "snippet"
+        }
+      ]
+    },
+    {
+      "name": "line comment where does not switch clause",
+      "sql": "select 1 -- where\nfrom orders ",
+      "active_clause": "from_tail",
+      "source": "parser",
+      "diagnostics": [
+        {
+          "code": "ParseDegraded",
+          "message": "parser metadata extraction failed"
+        }
+      ],
+      "candidates": [
+        {
+          "id": "keyword:inner join",
+          "label": "INNER JOIN",
+          "insert_text": "INNER JOIN ",
+          "kind": "keyword",
+          "score": 60,
+          "score_components": {
+            "context": 52,
+            "catalog": 8
+          },
+          "sort_key": {
+            "kind_priority": 60,
+            "label_lexical": "inner join",
+            "insert_lexical": "inner join "
+          },
+          "source": "snippet"
+        },
+        {
+          "id": "keyword:join",
+          "label": "JOIN",
+          "insert_text": "JOIN ",
+          "kind": "keyword",
+          "score": 60,
+          "score_components": {
+            "context": 52,
+            "catalog": 8
+          },
+          "sort_key": {
+            "kind_priority": 60,
+            "label_lexical": "join",
+            "insert_lexical": "join "
+          },
+          "source": "snippet"
+        },
+        {
+          "id": "keyword:left join",
+          "label": "LEFT JOIN",
+          "insert_text": "LEFT JOIN ",
+          "kind": "keyword",
+          "score": 60,
+          "score_components": {
+            "context": 52,
+            "catalog": 8
+          },
+          "sort_key": {
+            "kind_priority": 60,
+            "label_lexical": "left join",
+            "insert_lexical": "left join "
+          },
+          "source": "snippet"
+        },
+        {
+          "id": "keyword:where",
+          "label": "WHERE",
+          "insert_text": "WHERE ",
+          "kind": "keyword",
+          "score": 60,
+          "score_components": {
+            "context": 52,
+            "catalog": 8
+          },
+          "sort_key": {
+            "kind_priority": 60,
+            "label_lexical": "where",
+            "insert_lexical": "where "
+          },
+          "source": "snippet"
+        },
+        {
+          "id": "snippet:join_on",
+          "label": "JOIN ... ON ...",
+          "insert_text": "JOIN  ON ",
+          "kind": "snippet",
+          "score": 43,
+          "score_components": {
+            "context": 40,
+            "catalog": 8,
+            "snippet": -5
+          },
+          "sort_key": {
+            "kind_priority": 50,
+            "label_lexical": "join ... on ...",
+            "insert_lexical": "join  on "
+          },
+          "source": "snippet"
+        },
+        {
+          "id": "snippet:where",
+          "label": "WHERE ...",
+          "insert_text": "WHERE ",
+          "kind": "snippet",
+          "score": 43,
+          "score_components": {
+            "context": 40,
+            "catalog": 8,
+            "snippet": -5
+          },
+          "sort_key": {
+            "kind_priority": 50,
+            "label_lexical": "where ...",
+            "insert_lexical": "where "
+          },
+          "source": "snippet"
+        }
+      ]
+    },
+    {
+      "name": "double quoted join does not switch clause",
+      "sql": "select \"join\" from orders ",
+      "active_clause": "from_tail",
+      "source": "parser",
+      "diagnostics": [
+        {
+          "code": "ParseDegraded",
+          "message": "parser metadata extraction failed"
+        }
+      ],
+      "candidates": [
+        {
+          "id": "keyword:inner join",
+          "label": "INNER JOIN",
+          "insert_text": "INNER JOIN ",
+          "kind": "keyword",
+          "score": 60,
+          "score_components": {
+            "context": 52,
+            "catalog": 8
+          },
+          "sort_key": {
+            "kind_priority": 60,
+            "label_lexical": "inner join",
+            "insert_lexical": "inner join "
+          },
+          "source": "snippet"
+        },
+        {
+          "id": "keyword:join",
+          "label": "JOIN",
+          "insert_text": "JOIN ",
+          "kind": "keyword",
+          "score": 60,
+          "score_components": {
+            "context": 52,
+            "catalog": 8
+          },
+          "sort_key": {
+            "kind_priority": 60,
+            "label_lexical": "join",
+            "insert_lexical": "join "
+          },
+          "source": "snippet"
+        },
+        {
+          "id": "keyword:left join",
+          "label": "LEFT JOIN",
+          "insert_text": "LEFT JOIN ",
+          "kind": "keyword",
+          "score": 60,
+          "score_components": {
+            "context": 52,
+            "catalog": 8
+          },
+          "sort_key": {
+            "kind_priority": 60,
+            "label_lexical": "left join",
+            "insert_lexical": "left join "
+          },
+          "source": "snippet"
+        },
+        {
+          "id": "keyword:where",
+          "label": "WHERE",
+          "insert_text": "WHERE ",
+          "kind": "keyword",
+          "score": 60,
+          "score_components": {
+            "context": 52,
+            "catalog": 8
+          },
+          "sort_key": {
+            "kind_priority": 60,
+            "label_lexical": "where",
+            "insert_lexical": "where "
+          },
+          "source": "snippet"
+        },
+        {
+          "id": "snippet:join_on",
+          "label": "JOIN ... ON ...",
+          "insert_text": "JOIN  ON ",
+          "kind": "snippet",
+          "score": 43,
+          "score_components": {
+            "context": 40,
+            "catalog": 8,
+            "snippet": -5
+          },
+          "sort_key": {
+            "kind_priority": 50,
+            "label_lexical": "join ... on ...",
+            "insert_lexical": "join  on "
+          },
+          "source": "snippet"
+        },
+        {
+          "id": "snippet:where",
+          "label": "WHERE ...",
+          "insert_text": "WHERE ",
+          "kind": "snippet",
+          "score": 43,
+          "score_components": {
+            "context": 40,
+            "catalog": 8,
+            "snippet": -5
+          },
+          "sort_key": {
+            "kind_priority": 50,
+            "label_lexical": "where ...",
+            "insert_lexical": "where "
+          },
+          "source": "snippet"
+        }
+      ]
+    }
+  ]
+}

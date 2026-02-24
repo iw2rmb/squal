@@ -150,7 +150,7 @@ Legend: [ ] todo, [x] done.
   - Tests: add `TestClauseScopedSnippets` to verify no `SELECT ... FROM ...` snippet at `... where ` and `... join ... on `.
 
 ## Phase 5 — Regression Coverage, Golden Fixtures, and Acceptance
-- [ ] Add golden coverage for wrong-entry regressions — Lock ranking and families for critical cursor positions.
+- [x] Add golden coverage for wrong-entry regressions — Lock ranking and families for critical cursor positions.
   - Repository: `sql`
   - Component: `complete` tests
   - Scope: Extend `complete/golden_test.go` and add fixtures under `complete/testdata/candidates/` for:
@@ -164,7 +164,7 @@ Legend: [ ] todo, [x] done.
     ```
   - Tests: `go test ./complete/...` — deterministic fixture output and relevance assertions pass.
 
-- [ ] Run acceptance gate and synchronize design/roadmap docs — Keep repository documentation aligned with implemented behavior.
+- [x] Run acceptance gate and synchronize design/roadmap docs — Keep repository documentation aligned with implemented behavior.
   - Repository: `sql`
   - Component: `complete`, docs
   - Scope: After implementation, update:

@@ -1,0 +1,112 @@
+{
+  "scenario": "from tail continuation",
+  "sql": "select * from orders ",
+  "active_clause": "from_tail",
+  "source": "parser",
+  "candidates": [
+    {
+      "id": "keyword:inner join",
+      "label": "INNER JOIN",
+      "insert_text": "INNER JOIN ",
+      "kind": "keyword",
+      "score": 60,
+      "score_components": {
+        "context": 52,
+        "catalog": 8
+      },
+      "sort_key": {
+        "kind_priority": 60,
+        "label_lexical": "inner join",
+        "insert_lexical": "inner join "
+      },
+      "source": "snippet"
+    },
+    {
+      "id": "keyword:join",
+      "label": "JOIN",
+      "insert_text": "JOIN ",
+      "kind": "keyword",
+      "score": 60,
+      "score_components": {
+        "context": 52,
+        "catalog": 8
+      },
+      "sort_key": {
+        "kind_priority": 60,
+        "label_lexical": "join",
+        "insert_lexical": "join "
+      },
+      "source": "snippet"
+    },
+    {
+      "id": "keyword:left join",
+      "label": "LEFT JOIN",
+      "insert_text": "LEFT JOIN ",
+      "kind": "keyword",
+      "score": 60,
+      "score_components": {
+        "context": 52,
+        "catalog": 8
+      },
+      "sort_key": {
+        "kind_priority": 60,
+        "label_lexical": "left join",
+        "insert_lexical": "left join "
+      },
+      "source": "snippet"
+    },
+    {
+      "id": "keyword:where",
+      "label": "WHERE",
+      "insert_text": "WHERE ",
+      "kind": "keyword",
+      "score": 60,
+      "score_components": {
+        "context": 52,
+        "catalog": 8
+      },
+      "sort_key": {
+        "kind_priority": 60,
+        "label_lexical": "where",
+        "insert_lexical": "where "
+      },
+      "source": "snippet"
+    },
+    {
+      "id": "snippet:join_on",
+      "label": "JOIN ... ON ...",
+      "insert_text": "JOIN  ON ",
+      "kind": "snippet",
+      "score": 43,
+      "score_components": {
+        "context": 40,
+        "catalog": 8,
+        "snippet": -5
+      },
+      "sort_key": {
+        "kind_priority": 50,
+        "label_lexical": "join ... on ...",
+        "insert_lexical": "join  on "
+      },
+      "source": "snippet"
+    },
+    {
+      "id": "snippet:where",
+      "label": "WHERE ...",
+      "insert_text": "WHERE ",
+      "kind": "snippet",
+      "score": 43,
+      "score_components": {
+        "context": 40,
+        "catalog": 8,
+        "snippet": -5
+      },
+      "sort_key": {
+        "kind_priority": 50,
+        "label_lexical": "where ...",
+        "insert_lexical": "where "
+      },
+      "source": "snippet"
+    }
+  ]
+}
