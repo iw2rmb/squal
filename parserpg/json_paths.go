@@ -16,20 +16,9 @@ import (
 // What: Structured capture of JSON path usage for cache keys and invalidation.
 // How: Recognizes A_Expr nodes with JSON path operators and decodes path tokens.
 func (p *PGQueryParser) ExtractJSONPaths(sql string) ([]parser.JSONPath, error) {
-	tree, err := pg_query.Parse(sql)
-	if err != nil {
-		return nil, err
-	}
 	var paths []parser.JSONPath
 	var tableName string
-	for _, stmt := range tree.Stmts {
-		if stmt.Stmt == nil {
-			continue
-		}
-		sel := stmt.Stmt.GetSelectStmt()
-		if sel == nil {
-			continue
-		}
+	err := forEachSelectStmt(sql, func(sel *pg_query.SelectStmt) {
 		if len(sel.FromClause) > 0 {
 			if rt := sel.FromClause[0].GetRangeVar(); rt != nil {
 				if rt.Relname != "" {
@@ -45,6 +34,9 @@ func (p *PGQueryParser) ExtractJSONPaths(sql string) ([]parser.JSONPath, error) 
 		if sel.WhereClause != nil {
 			p.extractJSONPathsFromNode(sel.WhereClause, tableName, &paths)
 		}
+	})
+	if err != nil {
+		return nil, err
 	}
 	return paths, nil
 }

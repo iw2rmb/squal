@@ -19,7 +19,7 @@ func TestGoldenCandidates(t *testing.T) {
 		name    string
 		fixture string
 		sql     string
-		parser  parser.Parser
+		parser  parser.MetadataExtractor
 	}{
 		{
 			name:    "basic where",
@@ -190,7 +190,7 @@ type goldenKeywordSafetyCase struct {
 	Candidates   []Candidate      `json:"candidates"`
 }
 
-func newGoldenEngine(t *testing.T, completionParser parser.Parser) (Engine, CatalogVersion) {
+func newGoldenEngine(t *testing.T, completionParser parser.MetadataExtractor) (Engine, CatalogVersion) {
 	t.Helper()
 
 	engine := NewEngine(Config{
@@ -203,7 +203,7 @@ func newGoldenEngine(t *testing.T, completionParser parser.Parser) (Engine, Cata
 	return engine, version
 }
 
-func goldenParserStub() parser.Parser {
+func goldenParserStub() parser.MetadataExtractor {
 	return &parserStub{
 		metadata: &parser.QueryMetadata{
 			Tables: []string{"orders", "customers"},

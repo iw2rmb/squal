@@ -215,14 +215,6 @@ func hasIdentifierPrefix(value string, prefix string) bool {
 	return false
 }
 
-func isIdentifierByte(b byte) bool {
-	return (b >= 'a' && b <= 'z') ||
-		(b >= 'A' && b <= 'Z') ||
-		(b >= '0' && b <= '9') ||
-		b == '_' ||
-		b == '$'
-}
-
 func candidateID(candidate Candidate) string {
 	return string(candidate.Kind) + ":" + candidate.SortKey.LabelLexical + ":" + candidate.SortKey.InsertLexical
 }

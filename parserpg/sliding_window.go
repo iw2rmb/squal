@@ -13,23 +13,19 @@ import (
 // What: Enables efficient periodic refresh for time-bounded queries.
 // How: Uses comparison recognition + interval parsing via parser.ParseInterval.
 func (p *PGQueryParser) DetectSlidingWindow(sql string) (*parser.SlidingWindowInfo, error) {
-	tree, err := pg_query.Parse(sql)
+	var result *parser.SlidingWindowInfo
+	err := forEachSelectStmt(sql, func(sel *pg_query.SelectStmt) {
+		if result != nil || sel.WhereClause == nil {
+			return
+		}
+		if info := p.detectSlidingWindowInNode(sel.WhereClause); info != nil {
+			result = info
+		}
+	})
 	if err != nil {
 		return nil, err
 	}
-	for _, stmt := range tree.Stmts {
-		if stmt.Stmt == nil {
-			continue
-		}
-		selectStmt := stmt.Stmt.GetSelectStmt()
-		if selectStmt == nil || selectStmt.WhereClause == nil {
-			continue
-		}
-		if info := p.detectSlidingWindowInNode(selectStmt.WhereClause); info != nil {
-			return info, nil
-		}
-	}
-	return nil, nil
+	return result, nil
 }
 
 func (p *PGQueryParser) detectSlidingWindowInNode(node *pg_query.Node) *parser.SlidingWindowInfo {

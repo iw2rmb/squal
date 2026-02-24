@@ -19,18 +19,10 @@ import (
 // What: Canonicalizes GROUP BY items into structured items.
 // How: Reads pg_query AST, resolves aliases/positions, renders simple expr markers.
 func (p *PGQueryParser) ExtractGroupBy(sql string) ([]parser.GroupItem, error) {
-	tree, err := pg_query.Parse(sql)
-	if err != nil {
-		return nil, err
-	}
 	items := []parser.GroupItem{}
-	for _, stmt := range tree.Stmts {
-		if stmt.Stmt == nil {
-			continue
-		}
-		sel := stmt.Stmt.GetSelectStmt()
-		if sel == nil || sel.GroupClause == nil {
-			continue
+	err := forEachSelectStmt(sql, func(sel *pg_query.SelectStmt) {
+		if sel.GroupClause == nil {
+			return
 		}
 		for _, groupNode := range sel.GroupClause {
 			if groupNode == nil {
@@ -40,6 +32,9 @@ func (p *PGQueryParser) ExtractGroupBy(sql string) ([]parser.GroupItem, error) {
 				items = append(items, *item)
 			}
 		}
+	})
+	if err != nil {
+		return nil, err
 	}
 	return items, nil
 }
@@ -91,20 +86,6 @@ func (p *PGQueryParser) extractGroupItem(node *pg_query.Node, targetList []*pg_q
 
 	// Complex expression
 	return &parser.GroupItem{Kind: "expression", RawExpr: p.nodeToExprString(node)}
-}
-
-// extractColumnFromRef extracts column and table names from a ColumnRef node.
-// Delegates to columnRefToNames for the actual field extraction.
-func (p *PGQueryParser) extractColumnFromRef(cr *pg_query.ColumnRef) (column, table string) {
-	if cr == nil {
-		return "", ""
-	}
-	node := &pg_query.Node{Node: &pg_query.Node_ColumnRef{ColumnRef: cr}}
-	names, ok := p.columnRefToNames(node)
-	if !ok {
-		return "", ""
-	}
-	return names.column, names.table
 }
 
 // findMatchingAlias returns the alias of a SELECT target that matches a given column/table.

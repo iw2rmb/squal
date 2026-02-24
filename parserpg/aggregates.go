@@ -20,18 +20,10 @@ import (
 // What: Detects CASE-in-aggregate patterns for incremental strategies.
 // How: Walks SELECT targets; for FuncCall nodes tries to parse a CASE shape.
 func (p *PGQueryParser) ExtractCaseAggregates(sql string) ([]parser.AggCase, error) {
-	tree, err := pg_query.Parse(sql)
-	if err != nil {
-		return nil, err
-	}
 	out := []parser.AggCase{}
-	for _, stmt := range tree.Stmts {
-		if stmt.Stmt == nil {
-			continue
-		}
-		sel := stmt.Stmt.GetSelectStmt()
-		if sel == nil || sel.TargetList == nil {
-			continue
+	err := forEachSelectStmt(sql, func(sel *pg_query.SelectStmt) {
+		if sel.TargetList == nil {
+			return
 		}
 		for _, target := range sel.TargetList {
 			rt := target.GetResTarget()
@@ -45,24 +37,19 @@ func (p *PGQueryParser) ExtractCaseAggregates(sql string) ([]parser.AggCase, err
 				}
 			}
 		}
+	})
+	if err != nil {
+		return nil, err
 	}
 	return out, nil
 }
 
 // ExtractAggregateCompositions flattens +/- expressions over SUM/COUNT function calls in SELECT targets.
 func (p *PGQueryParser) ExtractAggregateCompositions(sql string) ([]parser.AggComposition, error) {
-	tree, err := pg_query.Parse(sql)
-	if err != nil {
-		return nil, err
-	}
 	out := []parser.AggComposition{}
-	for _, stmt := range tree.Stmts {
-		if stmt.Stmt == nil {
-			continue
-		}
-		sel := stmt.Stmt.GetSelectStmt()
-		if sel == nil || sel.TargetList == nil {
-			continue
+	err := forEachSelectStmt(sql, func(sel *pg_query.SelectStmt) {
+		if sel.TargetList == nil {
+			return
 		}
 		for _, target := range sel.TargetList {
 			rt := target.GetResTarget()
@@ -74,6 +61,9 @@ func (p *PGQueryParser) ExtractAggregateCompositions(sql string) ([]parser.AggCo
 				out = append(out, parser.AggComposition{Alias: rt.Name, Terms: terms})
 			}
 		}
+	})
+	if err != nil {
+		return nil, err
 	}
 	return out, nil
 }
@@ -82,18 +72,10 @@ func (p *PGQueryParser) ExtractAggregateCompositions(sql string) ([]parser.AggCo
 // Supported aggregate functions: COUNT, SUM, AVG, MIN, MAX.
 // For COUNT(*), Column will be "*". DISTINCT is detected and reported.
 func (p *PGQueryParser) ExtractAggregates(sql string) ([]parser.Aggregate, error) {
-	tree, err := pg_query.Parse(sql)
-	if err != nil {
-		return nil, err
-	}
 	var aggregates []parser.Aggregate
-	for _, stmt := range tree.Stmts {
-		if stmt.Stmt == nil {
-			continue
-		}
-		sel := stmt.Stmt.GetSelectStmt()
-		if sel == nil || sel.TargetList == nil {
-			continue
+	err := forEachSelectStmt(sql, func(sel *pg_query.SelectStmt) {
+		if sel.TargetList == nil {
+			return
 		}
 		for _, target := range sel.TargetList {
 			rt := target.GetResTarget()
@@ -104,6 +86,9 @@ func (p *PGQueryParser) ExtractAggregates(sql string) ([]parser.Aggregate, error
 				aggregates = append(aggregates, *agg)
 			}
 		}
+	})
+	if err != nil {
+		return nil, err
 	}
 	return aggregates, nil
 }

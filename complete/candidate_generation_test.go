@@ -136,11 +136,11 @@ func TestClauseScopedSnippets(t *testing.T) {
 	}
 
 	tests := []struct {
-		name         string
-		sql          string
-		wantSelect   bool
-		wantWhere    bool
-		wantJoinOn   bool
+		name       string
+		sql        string
+		wantSelect bool
+		wantWhere  bool
+		wantJoinOn bool
 	}{
 		{
 			name:       "unknown clause allows select/from snippet",
@@ -169,11 +169,10 @@ func TestClauseScopedSnippets(t *testing.T) {
 			t.Parallel()
 
 			resp, err := engine.Complete(Request{
-				SQL:             tc.sql,
-				CursorByte:      len(tc.sql),
-				CatalogVersion:  version,
-				IncludeSnippets: false,
-				MaxCandidates:   200,
+				SQL:            tc.sql,
+				CursorByte:     len(tc.sql),
+				CatalogVersion: version,
+				MaxCandidates:  200,
 			})
 			if err != nil {
 				t.Fatalf("Complete() error = %v", err)

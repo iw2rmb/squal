@@ -1,9 +1,13 @@
 package parser
 
-// Parser defines the interface for SQL parsing implementations.
-type Parser interface {
-	// ExtractMetadata parses a SQL query and extracts metadata
+// MetadataExtractor is the minimal interface needed by the completion engine.
+type MetadataExtractor interface {
 	ExtractMetadata(sql string) (*QueryMetadata, error)
+}
+
+// Parser defines the full interface for SQL parsing implementations.
+type Parser interface {
+	MetadataExtractor
 
 	// NormalizeQuery normalizes a SQL query for consistent caching
 	NormalizeQuery(sql string) (string, error)

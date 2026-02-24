@@ -17,32 +17,24 @@ import (
 // What: Surfaces time references for incremental scheduling and windowing.
 // How: Scans select targets and WHERE clause, recognizing common temporal shapes.
 func (p *PGQueryParser) ExtractTemporalOps(sql string) (*parser.TemporalOps, error) {
-	tree, err := pg_query.Parse(sql)
-	if err != nil {
-		return nil, err
-	}
 	ops := &parser.TemporalOps{HasNow: false, HasDateTrunc: false, WhereRanges: []parser.TimeRange{}}
-	for _, stmt := range tree.Stmts {
-		if stmt.Stmt == nil {
-			continue
-		}
-		selectStmt := stmt.Stmt.GetSelectStmt()
-		if selectStmt == nil {
-			continue
-		}
-		for _, target := range selectStmt.TargetList {
+	err := forEachSelectStmt(sql, func(sel *pg_query.SelectStmt) {
+		for _, target := range sel.TargetList {
 			if resTarget := target.GetResTarget(); resTarget != nil {
 				p.checkExprForTemporal(resTarget.Val, ops)
 			}
 		}
-		if selectStmt.GroupClause != nil {
-			for _, groupItem := range selectStmt.GroupClause {
+		if sel.GroupClause != nil {
+			for _, groupItem := range sel.GroupClause {
 				p.checkExprForTemporal(groupItem, ops)
 			}
 		}
-		if selectStmt.WhereClause != nil {
-			p.extractTimeRanges(selectStmt.WhereClause, ops)
+		if sel.WhereClause != nil {
+			p.extractTimeRanges(sel.WhereClause, ops)
 		}
+	})
+	if err != nil {
+		return nil, err
 	}
 	return ops, nil
 }
@@ -269,19 +261,6 @@ func (p *PGQueryParser) extractInterval(node *pg_query.Node) string {
 		}
 	}
 	return ""
-}
-
-
-// extractColumnFromRefNode extracts column and table names from a node if it's a ColumnRef.
-func (p *PGQueryParser) extractColumnFromRefNode(node *pg_query.Node) (column, table string) {
-	if node == nil {
-		return "", ""
-	}
-	cr := node.GetColumnRef()
-	if cr == nil {
-		return "", ""
-	}
-	return p.extractColumnFromRef(cr)
 }
 
 // extractNowMinusInterval checks if a node represents NOW() - INTERVAL 'duration'.

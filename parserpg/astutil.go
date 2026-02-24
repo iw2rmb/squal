@@ -38,6 +38,31 @@ func (p *PGQueryParser) columnRefToNames(node *pg_query.Node) (colNames, bool) {
 	return colNames{}, false
 }
 
+// extractColumnFromRef extracts column and table names from a ColumnRef node.
+func (p *PGQueryParser) extractColumnFromRef(cr *pg_query.ColumnRef) (column, table string) {
+	if cr == nil {
+		return "", ""
+	}
+	node := &pg_query.Node{Node: &pg_query.Node_ColumnRef{ColumnRef: cr}}
+	names, ok := p.columnRefToNames(node)
+	if !ok {
+		return "", ""
+	}
+	return names.column, names.table
+}
+
+// extractColumnFromRefNode extracts column and table names from a node if it's a ColumnRef.
+func (p *PGQueryParser) extractColumnFromRefNode(node *pg_query.Node) (column, table string) {
+	if node == nil {
+		return "", ""
+	}
+	cr := node.GetColumnRef()
+	if cr == nil {
+		return "", ""
+	}
+	return p.extractColumnFromRef(cr)
+}
+
 // constNodeToValue converts a Node to a Go value if it is a constant.
 func (p *PGQueryParser) constNodeToValue(node *pg_query.Node) (interface{}, bool) {
 	if node == nil {

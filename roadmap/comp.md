@@ -1,6 +1,6 @@
 # SQL Completion Relevance Hardening
 
-Scope: Eliminate irrelevant or semantically-wrong completion candidates at SQL entry points, while preserving deterministic ranking, parser fallback availability, and existing public API contracts.
+Scope: Eliminate irrelevant or semantically-wrong completion candidates at SQL entry points, while preserving deterministic ranking and parser fallback availability.
 
 Documentation:
 - `research/sql.md`
@@ -136,7 +136,7 @@ Legend: [ ] todo, [x] done.
   - Repository: `sql`
   - Component: `complete`
   - Scope:
-    - Keep snippets always enabled at API level (`normalizeRequest`) to preserve compatibility.
+    - Remove request-level snippet toggling; completion always emits clause-appropriate snippets.
     - Change emission policy in `addSnippetCandidates` call-site:
       - allow `SELECT ... FROM ...` mainly in `unknown/select`.
       - allow `JOIN ... ON ...` and `WHERE ...` in `from_tail`.

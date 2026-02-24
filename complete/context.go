@@ -312,7 +312,3 @@ func trailingNonWhitespace(value string) byte {
 func isFromClauseDelimiter(b byte) bool {
 	return isWhitespaceByte(b) || b == ','
 }
-
-func isWhitespaceByte(b byte) bool {
-	return b == ' ' || b == '\t' || b == '\n' || b == '\r'
-}

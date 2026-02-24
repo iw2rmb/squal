@@ -17,19 +17,8 @@ import (
 // What: Reports distinct-ness at query and aggregate level.
 // How: Looks at SelectStmt.DistinctClause and FuncCall with AggDistinct.
 func (p *PGQueryParser) ExtractDistinctSpec(sql string) (*parser.DistinctSpec, error) {
-	tree, err := pg_query.Parse(sql)
-	if err != nil {
-		return nil, err
-	}
 	spec := &parser.DistinctSpec{Columns: []string{}, CountColumns: []string{}}
-	for _, stmt := range tree.Stmts {
-		if stmt.Stmt == nil {
-			continue
-		}
-		sel := stmt.Stmt.GetSelectStmt()
-		if sel == nil {
-			continue
-		}
+	err := forEachSelectStmt(sql, func(sel *pg_query.SelectStmt) {
 		if len(sel.DistinctClause) > 0 {
 			spec.HasDistinct = true
 			if sel.TargetList != nil {
@@ -100,6 +89,9 @@ func (p *PGQueryParser) ExtractDistinctSpec(sql string) (*parser.DistinctSpec, e
 				}
 			}
 		}
+	})
+	if err != nil {
+		return nil, err
 	}
 	return spec, nil
 }

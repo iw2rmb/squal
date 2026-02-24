@@ -42,9 +42,7 @@ func generateCandidates(ctx completionContext, catalog CatalogSnapshot, req Requ
 		out := newCandidateSet()
 		addColumnCandidates(out, idx, ctx)
 		addKeywordCandidates(out, ctx)
-		if req.IncludeSnippets {
-			addSnippetCandidates(out, ctx.ActiveClause, cursorPrefix)
-		}
+		addSnippetCandidates(out, ctx.ActiveClause, cursorPrefix)
 
 		out.applyRanking(rankingContext{
 			activeClause: ctx.ActiveClause,
@@ -61,9 +59,7 @@ func generateCandidates(ctx completionContext, catalog CatalogSnapshot, req Requ
 	addColumnCandidates(out, idx, ctx)
 	addJoinCandidates(out, idx, ctx)
 	addKeywordCandidates(out, ctx)
-	if req.IncludeSnippets {
-		addSnippetCandidates(out, ctx.ActiveClause, cursorPrefix)
-	}
+	addSnippetCandidates(out, ctx.ActiveClause, cursorPrefix)
 
 	out.applyRanking(rankingContext{
 		activeClause: ctx.ActiveClause,
@@ -96,9 +92,7 @@ func generateDegradedCandidates(ctx completionContext, idx catalogIndex, req Req
 		addSchemaCandidates(out, idx)
 	}
 
-	if req.IncludeSnippets {
-		addSnippetCandidates(out, ctx.ActiveClause, cursorPrefix)
-	}
+	addSnippetCandidates(out, ctx.ActiveClause, cursorPrefix)
 
 	out.applyRanking(rankingContext{
 		activeClause: ctx.ActiveClause,
@@ -358,38 +352,23 @@ func addJoinCandidate(out *candidateSet, idx catalogIndex, schema string, table 
 	})
 }
 
-func addKeywordCandidates(out *candidateSet, ctx completionContext) {
-	switch ctx.ActiveClause {
-	case contextClauseFromTail:
-		addKeywordCandidate(out, "WHERE")
-		addKeywordCandidate(out, "JOIN")
-		addKeywordCandidate(out, "LEFT JOIN")
-		addKeywordCandidate(out, "INNER JOIN")
-	case contextClauseWhere, contextClauseJoinOn:
-		addPredicateKeywordCandidates(out)
-	case contextClauseGroupBy:
-		addKeywordCandidate(out, "HAVING")
-		addKeywordCandidate(out, "ORDER BY")
-	case contextClauseOrderBy:
-		addKeywordCandidate(out, "ASC")
-		addKeywordCandidate(out, "DESC")
-	}
+var predicateKeywords = []string{
+	"AND", "OR", "NOT", "IS", "IN", "LIKE", "BETWEEN",
+	"=", "<>", ">", ">=", "<", "<=",
 }
 
-func addPredicateKeywordCandidates(out *candidateSet) {
-		addKeywordCandidate(out, "AND")
-		addKeywordCandidate(out, "OR")
-		addKeywordCandidate(out, "NOT")
-		addKeywordCandidate(out, "IS")
-		addKeywordCandidate(out, "IN")
-		addKeywordCandidate(out, "LIKE")
-		addKeywordCandidate(out, "BETWEEN")
-		addKeywordCandidate(out, "=")
-		addKeywordCandidate(out, "<>")
-		addKeywordCandidate(out, ">")
-		addKeywordCandidate(out, ">=")
-		addKeywordCandidate(out, "<")
-		addKeywordCandidate(out, "<=")
+var clauseKeywords = map[contextClause][]string{
+	contextClauseFromTail: {"WHERE", "JOIN", "LEFT JOIN", "INNER JOIN"},
+	contextClauseWhere:    predicateKeywords,
+	contextClauseJoinOn:   predicateKeywords,
+	contextClauseGroupBy:  {"HAVING", "ORDER BY"},
+	contextClauseOrderBy:  {"ASC", "DESC"},
+}
+
+func addKeywordCandidates(out *candidateSet, ctx completionContext) {
+	for _, kw := range clauseKeywords[ctx.ActiveClause] {
+		addKeywordCandidate(out, kw)
+	}
 }
 
 func addKeywordCandidate(out *candidateSet, keyword string) {

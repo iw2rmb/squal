@@ -73,16 +73,12 @@ func TestRequestNormalization(t *testing.T) {
 		t.Parallel()
 
 		normalized := normalizeRequest(Request{
-			SQL:             "select * from t",
-			CursorByte:      7,
-			MaxCandidates:   0,
-			IncludeSnippets: false,
+			SQL:           "select * from t",
+			CursorByte:    7,
+			MaxCandidates: 0,
 		})
 		if normalized.MaxCandidates != defaultMaxCandidates {
 			t.Fatalf("normalizeRequest() max candidates = %d, want %d", normalized.MaxCandidates, defaultMaxCandidates)
-		}
-		if !normalized.IncludeSnippets {
-			t.Fatal("normalizeRequest() snippets = false, want true")
 		}
 	})
 
@@ -90,16 +86,12 @@ func TestRequestNormalization(t *testing.T) {
 		t.Parallel()
 
 		normalized := normalizeRequest(Request{
-			SQL:             "select * from t",
-			CursorByte:      7,
-			MaxCandidates:   5,
-			IncludeSnippets: false,
+			SQL:           "select * from t",
+			CursorByte:    7,
+			MaxCandidates: 5,
 		})
 		if normalized.MaxCandidates != 5 {
 			t.Fatalf("normalizeRequest() max candidates = %d, want 5", normalized.MaxCandidates)
-		}
-		if !normalized.IncludeSnippets {
-			t.Fatal("normalizeRequest() snippets = false, want true")
 		}
 	})
 }

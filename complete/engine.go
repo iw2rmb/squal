@@ -22,6 +22,6 @@ type ProviderResult struct {
 
 // Config wires dependencies for engine implementations.
 type Config struct {
-	Parser   parser.Parser
+	Parser   parser.MetadataExtractor
 	Provider CompletionProvider
 }

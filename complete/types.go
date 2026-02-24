@@ -13,11 +13,10 @@ type CatalogVersion string
 
 // Request is the completion request envelope.
 type Request struct {
-	SQL             string         `json:"sql"`
-	CursorByte      int            `json:"cursor_byte"`
-	CatalogVersion  CatalogVersion `json:"catalog_version"`
-	MaxCandidates   int            `json:"max_candidates,omitempty"`
-	IncludeSnippets bool           `json:"include_snippets,omitempty"`
+	SQL            string         `json:"sql"`
+	CursorByte     int            `json:"cursor_byte"`
+	CatalogVersion CatalogVersion `json:"catalog_version"`
+	MaxCandidates  int            `json:"max_candidates,omitempty"`
 }
 
 // CandidateKind classifies completion candidate families.

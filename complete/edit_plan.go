@@ -140,11 +140,3 @@ func qualifierBeforeSpan(sql string, tokenStart int) string {
 	}
 	return sql[qualifierStart:qualifierEnd]
 }
-
-func isIdentifierRune(r rune) bool {
-	return (r >= 'a' && r <= 'z') ||
-		(r >= 'A' && r <= 'Z') ||
-		(r >= '0' && r <= '9') ||
-		r == '_' ||
-		r == '$'
-}

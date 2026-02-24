@@ -8,8 +8,6 @@ func normalizeRequest(req Request) Request {
 		normalized.MaxCandidates = defaultMaxCandidates
 	}
 
-	// Snippets are always enabled for completion responses.
-	normalized.IncludeSnippets = true
 	return normalized
 }
 

@@ -19,11 +19,10 @@ func TestTypesContractCompile(t *testing.T) {
 		SearchPath: []string{"public"},
 	}
 	req := Request{
-		SQL:             "select 1",
-		CursorByte:      8,
-		CatalogVersion:  CatalogVersion("v1"),
-		MaxCandidates:   20,
-		IncludeSnippets: true,
+		SQL:            "select 1",
+		CursorByte:     8,
+		CatalogVersion: CatalogVersion("v1"),
+		MaxCandidates:  20,
 	}
 	candidate := Candidate{
 		ID:         "kw.select",
@@ -71,9 +70,6 @@ func TestTypesContractCompile(t *testing.T) {
 	if req.CatalogVersion != "v1" {
 		t.Fatalf("unexpected catalog version: %q", req.CatalogVersion)
 	}
-	if !req.IncludeSnippets {
-		t.Fatal("expected snippets enabled")
-	}
 	if len(plan.Edits) != 1 {
 		t.Fatalf("unexpected edit count: %d", len(plan.Edits))
 	}
@@ -111,7 +107,7 @@ func TestEngineContractCompile(t *testing.T) {
 
 	var _ Engine = (*engineStub)(nil)
 
-	var dependency parser.Parser
+	var dependency parser.MetadataExtractor
 	var provider CompletionProvider
 	cfg := Config{
 		Parser:   dependency,

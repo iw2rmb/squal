@@ -84,7 +84,7 @@ func TestParseDegraded(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		parser     parser.Parser
+		parser     parser.MetadataExtractor
 		sql        string
 		wantClause contextClause
 	}{
