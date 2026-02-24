@@ -8,13 +8,14 @@ import (
 type contextClause string
 
 const (
-	contextClauseUnknown contextClause = "unknown"
-	contextClauseSelect  contextClause = "select"
-	contextClauseFrom    contextClause = "from"
-	contextClauseJoin    contextClause = "join"
-	contextClauseWhere   contextClause = "where"
-	contextClauseGroupBy contextClause = "group_by"
-	contextClauseOrderBy contextClause = "order_by"
+	contextClauseUnknown  contextClause = "unknown"
+	contextClauseSelect   contextClause = "select"
+	contextClauseFrom     contextClause = "from"
+	contextClauseFromTail contextClause = "from_tail"
+	contextClauseJoin     contextClause = "join"
+	contextClauseWhere    contextClause = "where"
+	contextClauseGroupBy  contextClause = "group_by"
+	contextClauseOrderBy  contextClause = "order_by"
 )
 
 type completionContext struct {
@@ -78,9 +79,71 @@ func activeClauseAtCursor(sql string, cursor int) contextClause {
 
 	for _, candidate := range occurrences {
 		if candidate.pos >= 0 {
+			if candidate.clause == contextClauseFrom {
+				return classifyFromClause(prefix, candidate.pos)
+			}
 			return candidate.clause
 		}
 	}
 
 	return contextClauseUnknown
+}
+
+func classifyFromClause(prefix string, fromPos int) contextClause {
+	fromStart := fromPos + len("FROM")
+	if fromStart > len(prefix) {
+		return contextClauseFrom
+	}
+
+	if fromClauseNeedsTable(prefix[fromStart:]) {
+		return contextClauseFrom
+	}
+	return contextClauseFromTail
+}
+
+func fromClauseNeedsTable(tail string) bool {
+	trimmed := strings.TrimSpace(tail)
+	if trimmed == "" {
+		return true
+	}
+
+	if hasTrailingWhitespace(tail) {
+		last := trailingNonWhitespace(tail)
+		return last == ','
+	}
+
+	tokenStart := len(trimmed)
+	for tokenStart > 0 && !isFromClauseDelimiter(trimmed[tokenStart-1]) {
+		tokenStart--
+	}
+
+	beforeToken := strings.TrimSpace(trimmed[:tokenStart])
+	if beforeToken == "" {
+		return true
+	}
+	return strings.HasSuffix(beforeToken, ",")
+}
+
+func hasTrailingWhitespace(value string) bool {
+	if value == "" {
+		return false
+	}
+	return isWhitespaceByte(value[len(value)-1])
+}
+
+func trailingNonWhitespace(value string) byte {
+	for i := len(value) - 1; i >= 0; i-- {
+		if !isWhitespaceByte(value[i]) {
+			return value[i]
+		}
+	}
+	return 0
+}
+
+func isFromClauseDelimiter(b byte) bool {
+	return isWhitespaceByte(b) || b == ','
+}
+
+func isWhitespaceByte(b byte) bool {
+	return b == ' ' || b == '\t' || b == '\n' || b == '\r'
 }

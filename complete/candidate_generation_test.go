@@ -231,6 +231,71 @@ func TestSelectClausePrefixCandidatesUseColumnFromForm(t *testing.T) {
 	}
 }
 
+func TestFromTailPrefersJoinAndClauseKeywords(t *testing.T) {
+	t.Parallel()
+
+	engine := NewEngine(Config{
+		Parser: &parserStub{
+			metadata: &parser.QueryMetadata{
+				Tables: []string{"orders"},
+			},
+		},
+	})
+	version, err := engine.InitCatalog(catalogSnapshotVariantA())
+	if err != nil {
+		t.Fatalf("InitCatalog() error = %v", err)
+	}
+
+	sql := "select * from orders "
+	resp, err := engine.Complete(Request{
+		SQL:            sql,
+		CursorByte:     len(sql),
+		CatalogVersion: version,
+		MaxCandidates:  200,
+	})
+	if err != nil {
+		t.Fatalf("Complete() error = %v", err)
+	}
+
+	if hasKind(resp.Candidates, CandidateKindTable) {
+		t.Fatalf("unexpected table candidates in FROM tail context: %#v", resp.Candidates)
+	}
+	if hasKind(resp.Candidates, CandidateKindColumn) {
+		t.Fatalf("unexpected column candidates in FROM tail context: %#v", resp.Candidates)
+	}
+	if !hasJoinContaining(resp.Candidates, "JOIN customers ON orders.customer_id = customers.id") {
+		t.Fatalf("missing FK join suggestion in FROM tail context: %#v", resp.Candidates)
+	}
+	if !hasCandidate(resp.Candidates, CandidateKindKeyword, "WHERE", "WHERE ") {
+		t.Fatalf("missing WHERE keyword in FROM tail context: %#v", resp.Candidates)
+	}
+}
+
+func TestFromClauseStillSuggestsTablesWhileTypingSource(t *testing.T) {
+	t.Parallel()
+
+	engine := NewEngine(Config{Parser: healthyParserStub()})
+	version, err := engine.InitCatalog(catalogSnapshotVariantA())
+	if err != nil {
+		t.Fatalf("InitCatalog() error = %v", err)
+	}
+
+	sql := "select * from ord"
+	resp, err := engine.Complete(Request{
+		SQL:            sql,
+		CursorByte:     len(sql),
+		CatalogVersion: version,
+		MaxCandidates:  200,
+	})
+	if err != nil {
+		t.Fatalf("Complete() error = %v", err)
+	}
+
+	if !hasCandidate(resp.Candidates, CandidateKindTable, "public.orders", "orders") {
+		t.Fatalf("missing table candidate while typing source table: %#v", resp.Candidates)
+	}
+}
+
 func hasCandidate(candidates []Candidate, kind CandidateKind, label string, insert string) bool {
 	for _, candidate := range candidates {
 		if candidate.Kind == kind && candidate.Label == label && candidate.InsertText == insert {
@@ -261,6 +326,15 @@ func hasSnippet(candidates []Candidate, label string) bool {
 			continue
 		}
 		if candidate.Label == label {
+			return true
+		}
+	}
+	return false
+}
+
+func hasKind(candidates []Candidate, kind CandidateKind) bool {
+	for _, candidate := range candidates {
+		if candidate.Kind == kind {
 			return true
 		}
 	}

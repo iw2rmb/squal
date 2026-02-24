@@ -173,3 +173,23 @@ func TestAmbiguousContext(t *testing.T) {
 		}
 	}
 }
+
+func TestActiveClauseAtCursorFromTail(t *testing.T) {
+	t.Parallel()
+
+	sql := "select * from orders "
+	got := activeClauseAtCursor(sql, len(sql))
+	if got != contextClauseFromTail {
+		t.Fatalf("activeClauseAtCursor() = %q, want %q", got, contextClauseFromTail)
+	}
+}
+
+func TestActiveClauseAtCursorFromAfterCommaNeedsTable(t *testing.T) {
+	t.Parallel()
+
+	sql := "select * from orders, "
+	got := activeClauseAtCursor(sql, len(sql))
+	if got != contextClauseFrom {
+		t.Fatalf("activeClauseAtCursor() = %q, want %q", got, contextClauseFrom)
+	}
+}

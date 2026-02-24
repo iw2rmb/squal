@@ -31,9 +31,10 @@ func generateCandidates(ctx completionContext, catalog CatalogSnapshot, req Requ
 	}
 
 	addSchemaCandidates(out, idx)
-	addTableCandidates(out, idx)
+	addTableCandidates(out, idx, ctx)
 	addColumnCandidates(out, idx, ctx)
 	addJoinCandidates(out, idx, ctx)
+	addKeywordCandidates(out, ctx)
 	if req.IncludeSnippets {
 		addSnippetCandidates(out)
 	}
@@ -105,7 +106,11 @@ func addSchemaCandidates(out *candidateSet, idx catalogIndex) {
 	}
 }
 
-func addTableCandidates(out *candidateSet, idx catalogIndex) {
+func addTableCandidates(out *candidateSet, idx catalogIndex, ctx completionContext) {
+	if ctx.ActiveClause == contextClauseFromTail {
+		return
+	}
+
 	for _, entry := range idx.tables {
 		insert := qualifiedTableInsert(entry.Schema, entry.Table.Name, idx.searchPathSet)
 		out.add(Candidate{
@@ -158,6 +163,10 @@ func addSelectColumnFromCandidates(out *candidateSet, idx catalogIndex, prefix s
 }
 
 func addColumnCandidates(out *candidateSet, idx catalogIndex, ctx completionContext) {
+	if ctx.ActiveClause == contextClauseFromTail {
+		return
+	}
+
 	bindings := gatherTableBindings(idx, ctx)
 	if len(bindings) == 0 {
 		return
@@ -265,6 +274,26 @@ func addJoinCandidate(out *candidateSet, idx catalogIndex, schema string, table 
 		InsertText: "JOIN " + joinTable + " ON " + on,
 		Kind:       CandidateKindJoin,
 		Source:     CandidateSourceCatalog,
+	})
+}
+
+func addKeywordCandidates(out *candidateSet, ctx completionContext) {
+	switch ctx.ActiveClause {
+	case contextClauseFromTail:
+		addKeywordCandidate(out, "WHERE")
+		addKeywordCandidate(out, "JOIN")
+		addKeywordCandidate(out, "LEFT JOIN")
+		addKeywordCandidate(out, "INNER JOIN")
+	}
+}
+
+func addKeywordCandidate(out *candidateSet, keyword string) {
+	out.add(Candidate{
+		ID:         "keyword:" + strings.ToLower(keyword),
+		Label:      keyword,
+		InsertText: keyword + " ",
+		Kind:       CandidateKindKeyword,
+		Source:     CandidateSourceSnippet,
 	})
 }
 

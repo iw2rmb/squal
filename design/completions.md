@@ -122,6 +122,10 @@ Host must provide:
 - catalog-aware candidates
 - parser-context candidates
 - snippets/templates
+- FROM-tail continuation behavior:
+  - after `FROM <source> `, completion shifts to continuation mode and prioritizes `JOIN`/`WHERE` follow-ups.
+  - column candidates are suppressed in this state until clause context changes (for example `WHERE`, `JOIN ... ON`).
+  - repeated table-name candidates are suppressed until a comma indicates another FROM source.
 - select-without-source final-form candidates:
   - bare `SELECT ` emits `* FROM <table>` candidates only.
   - `SELECT <prefix>` emits `<column> FROM <table>` candidates for matching catalog columns.
