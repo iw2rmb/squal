@@ -52,12 +52,6 @@ func TestCatalogCandidates(t *testing.T) {
 		t.Fatalf("Complete() candidates are not deterministic:\nA=%#v\nB=%#v", respA.Candidates, respB.Candidates)
 	}
 
-	if !hasCandidate(respA.Candidates, CandidateKindSchema, "public", "public") {
-		t.Fatalf("missing schema candidate for public: %#v", respA.Candidates)
-	}
-	if !hasCandidate(respA.Candidates, CandidateKindSchema, "analytics", "analytics") {
-		t.Fatalf("missing schema candidate for analytics: %#v", respA.Candidates)
-	}
 	if !hasCandidate(respA.Candidates, CandidateKindTable, "public.orders", "orders") {
 		t.Fatalf("missing table candidate for public.orders: %#v", respA.Candidates)
 	}
@@ -126,34 +120,75 @@ func TestJoinSuggestions(t *testing.T) {
 	}
 }
 
-func TestSnippetCandidates(t *testing.T) {
+func TestClauseScopedSnippets(t *testing.T) {
 	t.Parallel()
 
-	engine := NewEngine(Config{Parser: healthyParserStub()})
+	engine := NewEngine(Config{
+		Parser: &parserStub{
+			metadata: &parser.QueryMetadata{
+				Tables: []string{"orders", "customers"},
+			},
+		},
+	})
 	version, err := engine.InitCatalog(catalogSnapshotVariantA())
 	if err != nil {
 		t.Fatalf("InitCatalog() error = %v", err)
 	}
 
-	resp, err := engine.Complete(Request{
-		SQL:             "select 1 where ",
-		CursorByte:      len("select 1 where "),
-		CatalogVersion:  version,
-		IncludeSnippets: false,
-		MaxCandidates:   200,
-	})
-	if err != nil {
-		t.Fatalf("Complete() error = %v", err)
+	tests := []struct {
+		name         string
+		sql          string
+		wantSelect   bool
+		wantWhere    bool
+		wantJoinOn   bool
+	}{
+		{
+			name:       "unknown clause allows select/from snippet",
+			sql:        " ",
+			wantSelect: true,
+		},
+		{
+			name:       "from tail allows where and join snippets",
+			sql:        "select * from orders ",
+			wantWhere:  true,
+			wantJoinOn: true,
+		},
+		{
+			name: "where clause suppresses snippets",
+			sql:  "select o.id from orders o where ",
+		},
+		{
+			name: "join on clause suppresses snippets",
+			sql:  "select o.id from orders o join customers c on ",
+		},
 	}
 
-	if !hasSnippet(resp.Candidates, "SELECT ... FROM ...") {
-		t.Fatalf("missing select/from snippet candidate: %#v", resp.Candidates)
-	}
-	if !hasSnippet(resp.Candidates, "WHERE ...") {
-		t.Fatalf("missing where snippet candidate: %#v", resp.Candidates)
-	}
-	if !hasSnippet(resp.Candidates, "JOIN ... ON ...") {
-		t.Fatalf("missing join snippet candidate: %#v", resp.Candidates)
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			resp, err := engine.Complete(Request{
+				SQL:             tc.sql,
+				CursorByte:      len(tc.sql),
+				CatalogVersion:  version,
+				IncludeSnippets: false,
+				MaxCandidates:   200,
+			})
+			if err != nil {
+				t.Fatalf("Complete() error = %v", err)
+			}
+
+			if got := hasSnippet(resp.Candidates, "SELECT ... FROM ..."); got != tc.wantSelect {
+				t.Fatalf("select/from snippet mismatch: got=%v want=%v candidates=%#v", got, tc.wantSelect, resp.Candidates)
+			}
+			if got := hasSnippet(resp.Candidates, "WHERE ..."); got != tc.wantWhere {
+				t.Fatalf("where snippet mismatch: got=%v want=%v candidates=%#v", got, tc.wantWhere, resp.Candidates)
+			}
+			if got := hasSnippet(resp.Candidates, "JOIN ... ON ..."); got != tc.wantJoinOn {
+				t.Fatalf("join/on snippet mismatch: got=%v want=%v candidates=%#v", got, tc.wantJoinOn, resp.Candidates)
+			}
+		})
 	}
 }
 
@@ -175,8 +210,14 @@ func TestSelectClauseBareCandidatesUseStarFromForm(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Complete() error = %v", err)
 	}
-	if got, want := len(resp.Candidates), 3; got != want {
+	if got, want := len(resp.Candidates), 5; got != want {
 		t.Fatalf("candidate count = %d, want %d; candidates=%#v", got, want, resp.Candidates)
+	}
+	if !hasCandidate(resp.Candidates, CandidateKindSchema, "analytics", "analytics") {
+		t.Fatalf("missing schema candidate for analytics: %#v", resp.Candidates)
+	}
+	if !hasCandidate(resp.Candidates, CandidateKindSchema, "public", "public") {
+		t.Fatalf("missing schema candidate for public: %#v", resp.Candidates)
 	}
 	if !hasCandidate(resp.Candidates, CandidateKindSnippet, "* FROM public.customers", "* FROM customers") {
 		t.Fatalf("missing select/from candidate for customers: %#v", resp.Candidates)
@@ -188,6 +229,9 @@ func TestSelectClauseBareCandidatesUseStarFromForm(t *testing.T) {
 		t.Fatalf("missing select/from candidate for events: %#v", resp.Candidates)
 	}
 	for _, candidate := range resp.Candidates {
+		if candidate.Kind == CandidateKindSchema {
+			continue
+		}
 		if !strings.HasPrefix(candidate.InsertText, "* FROM ") {
 			t.Fatalf("unexpected non-star-from candidate: %#v", candidate)
 		}
@@ -379,6 +423,66 @@ func TestJoinOnPrefersColumnsAndPredicates(t *testing.T) {
 	}
 }
 
+func TestWhereSuppressesSchemaCandidates(t *testing.T) {
+	t.Parallel()
+
+	engine := NewEngine(Config{
+		Parser: &parserStub{
+			metadata: &parser.QueryMetadata{
+				Tables: []string{"orders", "customers"},
+			},
+		},
+	})
+	version, err := engine.InitCatalog(catalogSnapshotVariantA())
+	if err != nil {
+		t.Fatalf("InitCatalog() error = %v", err)
+	}
+
+	sql := "select o.id from orders o join customers c on o.customer_id = c.id where "
+	resp, err := engine.Complete(Request{
+		SQL:            sql,
+		CursorByte:     len(sql),
+		CatalogVersion: version,
+		MaxCandidates:  200,
+	})
+	if err != nil {
+		t.Fatalf("Complete() error = %v", err)
+	}
+	if hasKind(resp.Candidates, CandidateKindSchema) {
+		t.Fatalf("unexpected schema candidates in WHERE context: %#v", resp.Candidates)
+	}
+}
+
+func TestJoinOnSuppressesSchemaCandidates(t *testing.T) {
+	t.Parallel()
+
+	engine := NewEngine(Config{
+		Parser: &parserStub{
+			metadata: &parser.QueryMetadata{
+				Tables: []string{"orders", "customers"},
+			},
+		},
+	})
+	version, err := engine.InitCatalog(catalogSnapshotVariantA())
+	if err != nil {
+		t.Fatalf("InitCatalog() error = %v", err)
+	}
+
+	sql := "select o.id from orders o join customers c on "
+	resp, err := engine.Complete(Request{
+		SQL:            sql,
+		CursorByte:     len(sql),
+		CatalogVersion: version,
+		MaxCandidates:  200,
+	})
+	if err != nil {
+		t.Fatalf("Complete() error = %v", err)
+	}
+	if hasKind(resp.Candidates, CandidateKindSchema) {
+		t.Fatalf("unexpected schema candidates in JOIN ON context: %#v", resp.Candidates)
+	}
+}
+
 func TestParseDegradedClauseScopedCandidates(t *testing.T) {
 	t.Parallel()
 
@@ -414,7 +518,7 @@ func TestParseDegradedClauseScopedCandidates(t *testing.T) {
 			name:       "degraded from keeps table candidates",
 			sql:        "select * from ",
 			wantTable:  true,
-			wantSchema: false,
+			wantSchema: true,
 			wantColumn: false,
 		},
 		{

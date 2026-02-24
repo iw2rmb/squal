@@ -120,7 +120,7 @@ Legend: [ ] todo, [x] done.
   - Tests: add `TestJoinOnPrefersColumnsAndPredicates` in `complete/candidate_generation_test.go` — for `... join customers c on ` ensure top candidates are `o.*`, `c.*`, and predicate keywords, not unrelated tables.
 
 ## Phase 4 — Context-Gated Global Candidate Families
-- [ ] Gate schema candidates to object-name entry points — Reduce noise in expression clauses.
+- [x] Gate schema candidates to object-name entry points — Reduce noise in expression clauses.
   - Repository: `sql`
   - Component: `complete`
   - Scope: Update `generateCandidates`/`addSchemaCandidates` usage so `CandidateKindSchema` is emitted only where schema qualification is expected (`SELECT` without bound source, `FROM`, `JOIN` table target).
@@ -132,7 +132,7 @@ Legend: [ ] todo, [x] done.
     ```
   - Tests: add `TestWhereSuppressesSchemaCandidates` and `TestJoinOnSuppressesSchemaCandidates`.
 
-- [ ] Gate snippet families by clause — Keep snippets contextual and avoid suggesting structural templates in expression tails.
+- [x] Gate snippet families by clause — Keep snippets contextual and avoid suggesting structural templates in expression tails.
   - Repository: `sql`
   - Component: `complete`
   - Scope:

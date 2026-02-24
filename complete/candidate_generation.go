@@ -13,11 +13,15 @@ type candidateSet struct {
 func generateCandidates(ctx completionContext, catalog CatalogSnapshot, req Request) []Candidate {
 	idx := buildCatalogIndex(catalog)
 	cursorPrefix := cursorPrefixAt(req.SQL, req.CursorByte)
+	hasBindings := len(gatherTableBindings(idx, ctx)) > 0
 
 	// For SELECT without visible source tables, return final-form projection
 	// candidates only, so users can complete a runnable query in one accept.
-	if ctx.ActiveClause == contextClauseSelect && len(gatherTableBindings(idx, ctx)) == 0 {
+	if ctx.ActiveClause == contextClauseSelect && !hasBindings {
 		out := newCandidateSet()
+		if allowsSchemaCandidates(ctx.ActiveClause, hasBindings, cursorPrefix) {
+			addSchemaCandidates(out, idx)
+		}
 		if cursorPrefix == "" {
 			addSelectStarFromCandidates(out, idx)
 		} else {
@@ -39,7 +43,7 @@ func generateCandidates(ctx completionContext, catalog CatalogSnapshot, req Requ
 		addColumnCandidates(out, idx, ctx)
 		addKeywordCandidates(out, ctx)
 		if req.IncludeSnippets {
-			addSnippetCandidates(out)
+			addSnippetCandidates(out, ctx.ActiveClause, cursorPrefix)
 		}
 
 		out.applyRanking(rankingContext{
@@ -50,13 +54,15 @@ func generateCandidates(ctx completionContext, catalog CatalogSnapshot, req Requ
 	}
 
 	out := newCandidateSet()
-	addSchemaCandidates(out, idx)
+	if allowsSchemaCandidates(ctx.ActiveClause, hasBindings, cursorPrefix) {
+		addSchemaCandidates(out, idx)
+	}
 	addTableCandidates(out, idx, ctx)
 	addColumnCandidates(out, idx, ctx)
 	addJoinCandidates(out, idx, ctx)
 	addKeywordCandidates(out, ctx)
 	if req.IncludeSnippets {
-		addSnippetCandidates(out)
+		addSnippetCandidates(out, ctx.ActiveClause, cursorPrefix)
 	}
 
 	out.applyRanking(rankingContext{
@@ -69,6 +75,7 @@ func generateCandidates(ctx completionContext, catalog CatalogSnapshot, req Requ
 
 func generateDegradedCandidates(ctx completionContext, idx catalogIndex, req Request, cursorPrefix string) []Candidate {
 	out := newCandidateSet()
+	hasBindings := len(gatherTableBindings(idx, ctx)) > 0
 
 	switch {
 	case isExpressionClause(ctx.ActiveClause):
@@ -80,15 +87,17 @@ func generateDegradedCandidates(ctx completionContext, idx catalogIndex, req Req
 		addJoinCandidates(out, idx, ctx)
 		addKeywordCandidates(out, ctx)
 	default:
-		addSchemaCandidates(out, idx)
 		addTableCandidates(out, idx, ctx)
 		addColumnCandidates(out, idx, ctx)
 		addJoinCandidates(out, idx, ctx)
 		addKeywordCandidates(out, ctx)
 	}
+	if allowsSchemaCandidates(ctx.ActiveClause, hasBindings, cursorPrefix) {
+		addSchemaCandidates(out, idx)
+	}
 
 	if req.IncludeSnippets {
-		addSnippetCandidates(out)
+		addSnippetCandidates(out, ctx.ActiveClause, cursorPrefix)
 	}
 
 	out.applyRanking(rankingContext{
@@ -103,6 +112,17 @@ func isExpressionClause(clause contextClause) bool {
 	switch clause {
 	case contextClauseWhere, contextClauseGroupBy, contextClauseOrderBy, contextClauseJoinOn:
 		return true
+	default:
+		return false
+	}
+}
+
+func allowsSchemaCandidates(clause contextClause, hasBindings bool, cursorPrefix string) bool {
+	switch clause {
+	case contextClauseFrom, contextClauseJoin:
+		return true
+	case contextClauseSelect:
+		return !hasBindings && cursorPrefix == ""
 	default:
 		return false
 	}
@@ -345,7 +365,18 @@ func addKeywordCandidates(out *candidateSet, ctx completionContext) {
 		addKeywordCandidate(out, "JOIN")
 		addKeywordCandidate(out, "LEFT JOIN")
 		addKeywordCandidate(out, "INNER JOIN")
-	case contextClauseJoinOn:
+	case contextClauseWhere, contextClauseJoinOn:
+		addPredicateKeywordCandidates(out)
+	case contextClauseGroupBy:
+		addKeywordCandidate(out, "HAVING")
+		addKeywordCandidate(out, "ORDER BY")
+	case contextClauseOrderBy:
+		addKeywordCandidate(out, "ASC")
+		addKeywordCandidate(out, "DESC")
+	}
+}
+
+func addPredicateKeywordCandidates(out *candidateSet) {
 		addKeywordCandidate(out, "AND")
 		addKeywordCandidate(out, "OR")
 		addKeywordCandidate(out, "NOT")
@@ -359,7 +390,6 @@ func addKeywordCandidates(out *candidateSet, ctx completionContext) {
 		addKeywordCandidate(out, ">=")
 		addKeywordCandidate(out, "<")
 		addKeywordCandidate(out, "<=")
-	}
 }
 
 func addKeywordCandidate(out *candidateSet, keyword string) {
@@ -372,36 +402,24 @@ func addKeywordCandidate(out *candidateSet, keyword string) {
 	})
 }
 
-func addSnippetCandidates(out *candidateSet) {
-	snippets := []struct {
-		id     string
-		label  string
-		insert string
-	}{
-		{
-			id:     "snippet:select_from",
-			label:  "SELECT ... FROM ...",
-			insert: "SELECT * FROM ",
-		},
-		{
-			id:     "snippet:where",
-			label:  "WHERE ...",
-			insert: "WHERE ",
-		},
-		{
-			id:     "snippet:join_on",
-			label:  "JOIN ... ON ...",
-			insert: "JOIN  ON ",
-		},
+func addSnippetCandidates(out *candidateSet, clause contextClause, cursorPrefix string) {
+	switch clause {
+	case contextClauseUnknown, contextClauseSelect:
+		if cursorPrefix == "" {
+			addSnippetCandidate(out, "snippet:select_from", "SELECT ... FROM ...", "SELECT * FROM ")
+		}
+	case contextClauseFromTail:
+		addSnippetCandidate(out, "snippet:where", "WHERE ...", "WHERE ")
+		addSnippetCandidate(out, "snippet:join_on", "JOIN ... ON ...", "JOIN  ON ")
 	}
+}
 
-	for _, snippet := range snippets {
-		out.add(Candidate{
-			ID:         snippet.id,
-			Label:      snippet.label,
-			InsertText: snippet.insert,
-			Kind:       CandidateKindSnippet,
-			Source:     CandidateSourceSnippet,
-		})
-	}
+func addSnippetCandidate(out *candidateSet, id string, label string, insert string) {
+	out.add(Candidate{
+		ID:         id,
+		Label:      label,
+		InsertText: insert,
+		Kind:       CandidateKindSnippet,
+		Source:     CandidateSourceSnippet,
+	})
 }
