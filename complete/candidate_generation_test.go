@@ -136,8 +136,8 @@ func TestSnippetCandidates(t *testing.T) {
 	}
 
 	resp, err := engine.Complete(Request{
-		SQL:             "select ",
-		CursorByte:      len("select "),
+		SQL:             "select 1 where ",
+		CursorByte:      len("select 1 where "),
 		CatalogVersion:  version,
 		IncludeSnippets: false,
 		MaxCandidates:   200,
@@ -154,6 +154,80 @@ func TestSnippetCandidates(t *testing.T) {
 	}
 	if !hasSnippet(resp.Candidates, "JOIN ... ON ...") {
 		t.Fatalf("missing join snippet candidate: %#v", resp.Candidates)
+	}
+}
+
+func TestSelectClauseBareCandidatesUseStarFromForm(t *testing.T) {
+	t.Parallel()
+
+	engine := NewEngine(Config{Parser: healthyParserStub()})
+	version, err := engine.InitCatalog(catalogSnapshotVariantA())
+	if err != nil {
+		t.Fatalf("InitCatalog() error = %v", err)
+	}
+
+	resp, err := engine.Complete(Request{
+		SQL:            "select ",
+		CursorByte:     len("select "),
+		CatalogVersion: version,
+		MaxCandidates:  200,
+	})
+	if err != nil {
+		t.Fatalf("Complete() error = %v", err)
+	}
+	if got, want := len(resp.Candidates), 3; got != want {
+		t.Fatalf("candidate count = %d, want %d; candidates=%#v", got, want, resp.Candidates)
+	}
+	if !hasCandidate(resp.Candidates, CandidateKindSnippet, "* FROM public.customers", "* FROM customers") {
+		t.Fatalf("missing select/from candidate for customers: %#v", resp.Candidates)
+	}
+	if !hasCandidate(resp.Candidates, CandidateKindSnippet, "* FROM public.orders", "* FROM orders") {
+		t.Fatalf("missing select/from candidate for orders: %#v", resp.Candidates)
+	}
+	if !hasCandidate(resp.Candidates, CandidateKindSnippet, "* FROM analytics.events", "* FROM events") {
+		t.Fatalf("missing select/from candidate for events: %#v", resp.Candidates)
+	}
+	for _, candidate := range resp.Candidates {
+		if !strings.HasPrefix(candidate.InsertText, "* FROM ") {
+			t.Fatalf("unexpected non-star-from candidate: %#v", candidate)
+		}
+	}
+}
+
+func TestSelectClausePrefixCandidatesUseColumnFromForm(t *testing.T) {
+	t.Parallel()
+
+	engine := NewEngine(Config{Parser: healthyParserStub()})
+	version, err := engine.InitCatalog(catalogSnapshotVariantA())
+	if err != nil {
+		t.Fatalf("InitCatalog() error = %v", err)
+	}
+
+	resp, err := engine.Complete(Request{
+		SQL:            "select e",
+		CursorByte:     len("select e"),
+		CatalogVersion: version,
+		MaxCandidates:  200,
+	})
+	if err != nil {
+		t.Fatalf("Complete() error = %v", err)
+	}
+	if !hasCandidate(resp.Candidates, CandidateKindColumn, "email FROM public.customers", "email FROM customers") {
+		t.Fatalf("missing select-prefix candidate for customers.email: %#v", resp.Candidates)
+	}
+	if !hasCandidate(resp.Candidates, CandidateKindColumn, "event_id FROM analytics.events", "event_id FROM events") {
+		t.Fatalf("missing select-prefix candidate for events.event_id: %#v", resp.Candidates)
+	}
+	if hasCandidate(resp.Candidates, CandidateKindSnippet, "* FROM public.orders", "* FROM orders") {
+		t.Fatalf("unexpected bare select star/from candidate in prefix mode: %#v", resp.Candidates)
+	}
+	for _, candidate := range resp.Candidates {
+		if !strings.HasPrefix(strings.ToLower(candidate.InsertText), "e") {
+			t.Fatalf("unexpected non-prefix select candidate: %#v", candidate)
+		}
+		if !strings.Contains(candidate.InsertText, " FROM ") {
+			t.Fatalf("expected final-form select/from candidate: %#v", candidate)
+		}
 	}
 }
 

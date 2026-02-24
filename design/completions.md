@@ -122,6 +122,9 @@ Host must provide:
 - catalog-aware candidates
 - parser-context candidates
 - snippets/templates
+- select-without-source final-form candidates:
+  - bare `SELECT ` emits `* FROM <table>` candidates only.
+  - `SELECT <prefix>` emits `<column> FROM <table>` candidates for matching catalog columns.
 
 5. Ranking:
 - deterministic weighted scoring

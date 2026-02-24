@@ -13,6 +13,22 @@ type candidateSet struct {
 func generateCandidates(ctx completionContext, catalog CatalogSnapshot, req Request) []Candidate {
 	idx := buildCatalogIndex(catalog)
 	out := newCandidateSet()
+	cursorPrefix := cursorPrefixAt(req.SQL, req.CursorByte)
+
+	// For SELECT without visible source tables, return final-form projection
+	// candidates only, so users can complete a runnable query in one accept.
+	if ctx.ActiveClause == contextClauseSelect && len(gatherTableBindings(idx, ctx)) == 0 {
+		if cursorPrefix == "" {
+			addSelectStarFromCandidates(out, idx)
+		} else {
+			addSelectColumnFromCandidates(out, idx, cursorPrefix)
+		}
+		out.applyRanking(rankingContext{
+			activeClause: ctx.ActiveClause,
+			cursorPrefix: cursorPrefix,
+		})
+		return out.finalize(req.MaxCandidates)
+	}
 
 	addSchemaCandidates(out, idx)
 	addTableCandidates(out, idx)
@@ -24,7 +40,7 @@ func generateCandidates(ctx completionContext, catalog CatalogSnapshot, req Requ
 
 	out.applyRanking(rankingContext{
 		activeClause: ctx.ActiveClause,
-		cursorPrefix: cursorPrefixAt(req.SQL, req.CursorByte),
+		cursorPrefix: cursorPrefix,
 	})
 
 	return out.finalize(req.MaxCandidates)
@@ -99,6 +115,45 @@ func addTableCandidates(out *candidateSet, idx catalogIndex) {
 			Kind:       CandidateKindTable,
 			Source:     CandidateSourceCatalog,
 		})
+	}
+}
+
+func addSelectStarFromCandidates(out *candidateSet, idx catalogIndex) {
+	for _, entry := range idx.tables {
+		tableLabel := entry.Schema + "." + entry.Table.Name
+		tableInsert := qualifiedTableInsert(entry.Schema, entry.Table.Name, idx.searchPathSet)
+		out.add(Candidate{
+			ID:         "select:star-from:" + strings.ToLower(tableLabel),
+			Label:      "* FROM " + tableLabel,
+			InsertText: "* FROM " + tableInsert,
+			Kind:       CandidateKindSnippet,
+			Source:     CandidateSourceCatalog,
+		})
+	}
+}
+
+func addSelectColumnFromCandidates(out *candidateSet, idx catalogIndex, prefix string) {
+	lowerPrefix := strings.ToLower(strings.TrimSpace(prefix))
+	if lowerPrefix == "" {
+		return
+	}
+
+	for _, entry := range idx.tables {
+		tableLabel := entry.Schema + "." + entry.Table.Name
+		tableInsert := qualifiedTableInsert(entry.Schema, entry.Table.Name, idx.searchPathSet)
+		for _, column := range entry.Table.Columns {
+			if !strings.HasPrefix(strings.ToLower(column.Name), lowerPrefix) {
+				continue
+			}
+			label := column.Name + " FROM " + tableLabel
+			out.add(Candidate{
+				ID:         "select:column-from:" + strings.ToLower(tableLabel) + "." + strings.ToLower(column.Name),
+				Label:      label,
+				InsertText: column.Name + " FROM " + tableInsert,
+				Kind:       CandidateKindColumn,
+				Source:     CandidateSourceCatalog,
+			})
+		}
 	}
 }
 
