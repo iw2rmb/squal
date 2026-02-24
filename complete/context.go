@@ -1,7 +1,6 @@
 package complete
 
 import (
-	"sort"
 	"strings"
 )
 
@@ -59,34 +58,194 @@ func activeClauseAtCursor(sql string, cursor int) contextClause {
 		cursor = len(sql)
 	}
 
-	prefix := strings.ToUpper(sql[:cursor])
+	prefix := sql[:cursor]
+	lastClause := contextClauseUnknown
+	lastFromPos := -1
+	state := clauseScanDefault
 
-	occurrences := []struct {
-		clause contextClause
-		pos    int
-	}{
-		{clause: contextClauseSelect, pos: strings.LastIndex(prefix, "SELECT")},
-		{clause: contextClauseFrom, pos: strings.LastIndex(prefix, "FROM")},
-		{clause: contextClauseJoin, pos: strings.LastIndex(prefix, "JOIN")},
-		{clause: contextClauseWhere, pos: strings.LastIndex(prefix, "WHERE")},
-		{clause: contextClauseGroupBy, pos: strings.LastIndex(prefix, "GROUP BY")},
-		{clause: contextClauseOrderBy, pos: strings.LastIndex(prefix, "ORDER BY")},
+	for i := 0; i < len(prefix); {
+		switch state {
+		case clauseScanSingleQuote:
+			if prefix[i] == '\'' {
+				if i+1 < len(prefix) && prefix[i+1] == '\'' {
+					i += 2
+					continue
+				}
+				state = clauseScanDefault
+			}
+			i++
+			continue
+		case clauseScanDoubleQuote:
+			if prefix[i] == '"' {
+				if i+1 < len(prefix) && prefix[i+1] == '"' {
+					i += 2
+					continue
+				}
+				state = clauseScanDefault
+			}
+			i++
+			continue
+		case clauseScanLineComment:
+			if prefix[i] == '\n' || prefix[i] == '\r' {
+				state = clauseScanDefault
+			}
+			i++
+			continue
+		case clauseScanBlockComment:
+			if prefix[i] == '*' && i+1 < len(prefix) && prefix[i+1] == '/' {
+				state = clauseScanDefault
+				i += 2
+				continue
+			}
+			i++
+			continue
+		}
+
+		if prefix[i] == '\'' {
+			state = clauseScanSingleQuote
+			i++
+			continue
+		}
+		if prefix[i] == '"' {
+			state = clauseScanDoubleQuote
+			i++
+			continue
+		}
+		if prefix[i] == '-' && i+1 < len(prefix) && prefix[i+1] == '-' {
+			state = clauseScanLineComment
+			i += 2
+			continue
+		}
+		if prefix[i] == '/' && i+1 < len(prefix) && prefix[i+1] == '*' {
+			state = clauseScanBlockComment
+			i += 2
+			continue
+		}
+
+		if end, ok := matchTwoWordClause(prefix, i, "GROUP", "BY"); ok {
+			lastClause = contextClauseGroupBy
+			i = end
+			continue
+		}
+		if end, ok := matchTwoWordClause(prefix, i, "ORDER", "BY"); ok {
+			lastClause = contextClauseOrderBy
+			i = end
+			continue
+		}
+		if end, ok := matchSingleWordClause(prefix, i, "SELECT"); ok {
+			lastClause = contextClauseSelect
+			i = end
+			continue
+		}
+		if end, ok := matchSingleWordClause(prefix, i, "FROM"); ok {
+			lastClause = contextClauseFrom
+			lastFromPos = i
+			i = end
+			continue
+		}
+		if end, ok := matchSingleWordClause(prefix, i, "JOIN"); ok {
+			lastClause = contextClauseJoin
+			i = end
+			continue
+		}
+		if end, ok := matchSingleWordClause(prefix, i, "WHERE"); ok {
+			lastClause = contextClauseWhere
+			i = end
+			continue
+		}
+
+		i++
 	}
 
-	sort.SliceStable(occurrences, func(i, j int) bool {
-		return occurrences[i].pos > occurrences[j].pos
-	})
+	if lastClause == contextClauseFrom {
+		return classifyFromClause(prefix, lastFromPos)
+	}
+	return lastClause
+}
 
-	for _, candidate := range occurrences {
-		if candidate.pos >= 0 {
-			if candidate.clause == contextClauseFrom {
-				return classifyFromClause(prefix, candidate.pos)
-			}
-			return candidate.clause
+type clauseScanState uint8
+
+const (
+	clauseScanDefault clauseScanState = iota
+	clauseScanSingleQuote
+	clauseScanDoubleQuote
+	clauseScanLineComment
+	clauseScanBlockComment
+)
+
+func matchSingleWordClause(value string, start int, keyword string) (int, bool) {
+	end := start + len(keyword)
+	if end > len(value) {
+		return 0, false
+	}
+	if !isClauseBoundaryBefore(value, start) || !isClauseBoundaryAfter(value, end) {
+		return 0, false
+	}
+	if !equalFoldASCII(value[start:end], keyword) {
+		return 0, false
+	}
+	return end, true
+}
+
+func matchTwoWordClause(value string, start int, first string, second string) (int, bool) {
+	firstEnd, ok := matchSingleWordClause(value, start, first)
+	if !ok {
+		return 0, false
+	}
+
+	if firstEnd >= len(value) || !isWhitespaceByte(value[firstEnd]) {
+		return 0, false
+	}
+
+	secondStart := firstEnd
+	for secondStart < len(value) && isWhitespaceByte(value[secondStart]) {
+		secondStart++
+	}
+
+	secondEnd := secondStart + len(second)
+	if secondEnd > len(value) {
+		return 0, false
+	}
+	if !isClauseBoundaryAfter(value, secondEnd) {
+		return 0, false
+	}
+	if !equalFoldASCII(value[secondStart:secondEnd], second) {
+		return 0, false
+	}
+	return secondEnd, true
+}
+
+func isClauseBoundaryBefore(value string, start int) bool {
+	if start <= 0 {
+		return true
+	}
+	return !isIdentifierByte(value[start-1])
+}
+
+func isClauseBoundaryAfter(value string, end int) bool {
+	if end >= len(value) {
+		return true
+	}
+	return !isIdentifierByte(value[end])
+}
+
+func equalFoldASCII(value string, expectedUpper string) bool {
+	if len(value) != len(expectedUpper) {
+		return false
+	}
+	for i := 0; i < len(value); i++ {
+		if asciiUpper(value[i]) != expectedUpper[i] {
+			return false
 		}
 	}
+	return true
+}
 
-	return contextClauseUnknown
+func asciiUpper(b byte) byte {
+	if b >= 'a' && b <= 'z' {
+		return b - ('a' - 'A')
+	}
+	return b
 }
 
 func classifyFromClause(prefix string, fromPos int) contextClause {

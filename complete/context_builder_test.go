@@ -211,6 +211,16 @@ func TestActiveClauseAtCursorFromTail(t *testing.T) {
 	}
 }
 
+func TestActiveClauseAtCursorFromNeedsTable(t *testing.T) {
+	t.Parallel()
+
+	sql := "select * from "
+	got := activeClauseAtCursor(sql, len(sql))
+	if got != contextClauseFrom {
+		t.Fatalf("activeClauseAtCursor() = %q, want %q", got, contextClauseFrom)
+	}
+}
+
 func TestActiveClauseAtCursorFromAfterCommaNeedsTable(t *testing.T) {
 	t.Parallel()
 
@@ -218,5 +228,81 @@ func TestActiveClauseAtCursorFromAfterCommaNeedsTable(t *testing.T) {
 	got := activeClauseAtCursor(sql, len(sql))
 	if got != contextClauseFrom {
 		t.Fatalf("activeClauseAtCursor() = %q, want %q", got, contextClauseFrom)
+	}
+}
+
+func TestActiveClauseIgnoresQuotedKeywords(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		sql  string
+		want contextClause
+	}{
+		{
+			name: "single-quoted literal does not set from",
+			sql:  "select 'from' as s where ",
+			want: contextClauseWhere,
+		},
+		{
+			name: "double-quoted identifier does not set join",
+			sql:  `select "join" from t `,
+			want: contextClauseFromTail,
+		},
+		{
+			name: "escaped quote keeps literal scanning intact",
+			sql:  "select 'it''s where' from t ",
+			want: contextClauseFromTail,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := activeClauseAtCursor(tc.sql, len(tc.sql))
+			if got != tc.want {
+				t.Fatalf("activeClauseAtCursor() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestActiveClauseIgnoresCommentKeywords(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		sql  string
+		want contextClause
+	}{
+		{
+			name: "line comment does not set where",
+			sql:  "select 1 -- where\nfrom orders ",
+			want: contextClauseFromTail,
+		},
+		{
+			name: "block comment does not set group by",
+			sql:  "select 1 /* group by */ from orders ",
+			want: contextClauseFromTail,
+		},
+		{
+			name: "commented clause before real where keeps where",
+			sql:  "select 1 /* where */ where ",
+			want: contextClauseWhere,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := activeClauseAtCursor(tc.sql, len(tc.sql))
+			if got != tc.want {
+				t.Fatalf("activeClauseAtCursor() = %q, want %q", got, tc.want)
+			}
+		})
 	}
 }

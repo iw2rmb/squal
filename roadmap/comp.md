@@ -55,7 +55,7 @@ Legend: [ ] todo, [x] done.
   - Tests: add `TestParseDegradedClauseScopedCandidates` in `complete/candidate_generation_test.go` — verify no `CandidateKindTable`/`CandidateKindSchema` for degraded `... where ` and degraded `... join ... on `, while degraded `from` still returns table candidates.
 
 ## Phase 2 — Token-Aware Clause Detection
-- [ ] Replace raw substring clause matching with token-aware scanning — Avoid false context switches caused by keywords in string literals, comments, or identifiers.
+- [x] Replace raw substring clause matching with token-aware scanning — Avoid false context switches caused by keywords in string literals, comments, or identifiers.
   - Repository: `sql`
   - Component: `complete`
   - Scope: Refactor `activeClauseAtCursor` in `complete/context.go`:
@@ -79,7 +79,7 @@ Legend: [ ] todo, [x] done.
     - `SELECT 1 -- where`
     - `SELECT "join" FROM t`
 
-- [ ] Keep existing `FROM` vs `FROM tail` semantics after lexer refactor — Preserve newly-correct behavior around `FROM <table> _`.
+- [x] Keep existing `FROM` vs `FROM tail` semantics after lexer refactor — Preserve newly-correct behavior around `FROM <table> _`.
   - Repository: `sql`
   - Component: `complete`
   - Scope: Ensure `classifyFromClause` still handles:
