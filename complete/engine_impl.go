@@ -28,16 +28,8 @@ func (e *EngineImpl) UpdateCatalog(snapshot CatalogSnapshot) (CatalogVersion, er
 }
 
 func (e *EngineImpl) Complete(req Request) (Response, error) {
-	normalized := normalizeRequest(req)
-	if diags := validateRequest(normalized); len(diags) > 0 {
-		return Response{
-			Candidates:  []Candidate{},
-			Diagnostics: diags,
-		}, nil
-	}
-
-	catalog, diags, ok := e.resolveCatalog(normalized.CatalogVersion)
-	if !ok {
+	normalized, catalog, diags := e.prepareRequest(req)
+	if diags != nil {
 		return Response{
 			Candidates:  []Candidate{},
 			Diagnostics: diags,
@@ -59,18 +51,27 @@ func (e *EngineImpl) Complete(req Request) (Response, error) {
 }
 
 func (e *EngineImpl) PlanEdit(req Request, accepted Candidate) (EditPlan, []Diagnostic, error) {
-	normalized := normalizeRequest(req)
-	if diags := validateRequest(normalized); len(diags) > 0 {
-		return EditPlan{}, diags, nil
-	}
-
-	_, diags, ok := e.resolveCatalog(normalized.CatalogVersion)
-	if !ok {
+	normalized, _, diags := e.prepareRequest(req)
+	if diags != nil {
 		return EditPlan{}, diags, nil
 	}
 
 	plan, planDiags := planSingleEdit(normalized, accepted)
 	return plan, planDiags, nil
+}
+
+// prepareRequest normalizes, validates, and resolves the catalog for a request.
+// Returns non-nil diagnostics on failure.
+func (e *EngineImpl) prepareRequest(req Request) (Request, CatalogSnapshot, []Diagnostic) {
+	normalized := normalizeRequest(req)
+	if diags := validateRequest(normalized); len(diags) > 0 {
+		return normalized, CatalogSnapshot{}, diags
+	}
+	catalog, diags, ok := e.resolveCatalog(normalized.CatalogVersion)
+	if !ok {
+		return normalized, CatalogSnapshot{}, diags
+	}
+	return normalized, catalog, nil
 }
 
 func (e *EngineImpl) catalogStore() *catalogStore {

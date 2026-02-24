@@ -58,11 +58,3 @@ func (p *PGQueryParser) isILikeOperator(aExpr *pg_query.A_Expr) bool {
 	return false
 }
 
-func (p *PGQueryParser) stringInSlice(str string, slice []string) bool {
-	for _, s := range slice {
-		if s == str {
-			return true
-		}
-	}
-	return false
-}

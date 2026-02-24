@@ -19,8 +19,17 @@ import (
 // What: Canonicalizes GROUP BY items into structured items.
 // How: Reads pg_query AST, resolves aliases/positions, renders simple expr markers.
 func (p *PGQueryParser) ExtractGroupBy(sql string) ([]parser.GroupItem, error) {
+	tree, err := pg_query.Parse(sql)
+	if err != nil {
+		return nil, err
+	}
+	return p.extractGroupByFromTree(tree), nil
+}
+
+// extractGroupByFromTree returns ordered GROUP BY items from a pre-parsed tree.
+func (p *PGQueryParser) extractGroupByFromTree(tree *pg_query.ParseResult) []parser.GroupItem {
 	items := []parser.GroupItem{}
-	err := forEachSelectStmt(sql, func(sel *pg_query.SelectStmt) {
+	forEachSelectStmtFromTree(tree, func(sel *pg_query.SelectStmt) {
 		if sel.GroupClause == nil {
 			return
 		}
@@ -33,10 +42,7 @@ func (p *PGQueryParser) ExtractGroupBy(sql string) ([]parser.GroupItem, error) {
 			}
 		}
 	})
-	if err != nil {
-		return nil, err
-	}
-	return items, nil
+	return items
 }
 
 // extractGroupItem extracts a single GroupItem from a GROUP BY node.

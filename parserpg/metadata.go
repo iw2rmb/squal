@@ -4,6 +4,7 @@
 package parserpg
 
 import (
+	"slices"
 	"strings"
 
 	pg_query "github.com/pganalyze/pg_query_go/v6"
@@ -35,10 +36,8 @@ func (p *PGQueryParser) ExtractMetadata(sql string) (*parser.QueryMetadata, erro
 		DistinctColumns: []string{},
 	}
 
-	// Populate base tables using ExtractTables helper
-	if tables, err := p.ExtractTables(sql); err == nil {
-		metadata.Tables = tables
-	}
+	// Populate base tables from pre-parsed tree
+	metadata.Tables = p.extractTablesFromTree(tree)
 
 	for _, stmt := range tree.Stmts {
 		if stmt.Stmt == nil {
@@ -57,7 +56,7 @@ func (p *PGQueryParser) ExtractMetadata(sql string) (*parser.QueryMetadata, erro
 				metadata.HasDistinct = true
 			}
 
-			if distinctSpec, err := p.ExtractDistinctSpec(sql); err == nil && distinctSpec.HasDistinct {
+			if distinctSpec := p.extractDistinctSpecFromTree(tree); distinctSpec.HasDistinct {
 				metadata.DistinctColumns = distinctSpec.Columns
 			}
 
@@ -82,33 +81,9 @@ func (p *PGQueryParser) ExtractMetadata(sql string) (*parser.QueryMetadata, erro
 							pos := int(ival.Ival)
 							if pos >= 1 && selectStmt.TargetList != nil && pos <= len(selectStmt.TargetList) {
 								if rt := selectStmt.TargetList[pos-1].GetResTarget(); rt != nil && rt.Val != nil {
-									if fc := rt.Val.GetFuncCall(); fc != nil {
-										fname := ""
-										if len(fc.Funcname) > 0 {
-											if s := fc.Funcname[len(fc.Funcname)-1].GetString_(); s != nil {
-												fname = strings.ToLower(s.Sval)
-											}
-										}
-										if fname == "date_trunc" && len(fc.Args) >= 2 {
-											bi := &parser.BucketInfo{Function: "date_trunc"}
-											if a := fc.Args[0].GetAConst(); a != nil {
-												if sv := a.GetSval(); sv != nil {
-													bi.Interval = sv.Sval
-												}
-											}
-											if c := fc.Args[1].GetColumnRef(); c != nil && len(c.Fields) > 0 {
-												if s := c.Fields[len(c.Fields)-1].GetString_(); s != nil {
-													bi.Column = s.Sval
-												}
-												if len(c.Fields) > 1 {
-													if s := c.Fields[0].GetString_(); s != nil {
-														bi.ColumnTable = s.Sval
-													}
-												}
-											}
-											metadata.HasTimeBucket = true
-											metadata.BucketInfo = bi
-										}
+									if bi := bucketInfoFromFuncCall(rt.Val.GetFuncCall()); bi != nil {
+										metadata.HasTimeBucket = true
+										metadata.BucketInfo = bi
 									}
 								}
 							}
@@ -117,7 +92,7 @@ func (p *PGQueryParser) ExtractMetadata(sql string) (*parser.QueryMetadata, erro
 				}
 			}
 
-			if groupItems, err := p.ExtractGroupBy(sql); err == nil {
+			if groupItems := p.extractGroupByFromTree(tree); len(groupItems) > 0 {
 				for _, item := range groupItems {
 					switch item.Kind {
 					case "column":
@@ -245,7 +220,7 @@ func (p *PGQueryParser) checkExpressionForMetadata(node *pg_query.Node, metadata
 		if p.isArrayFunction(funcName) {
 			metadata.DatabaseType = "postgresql"
 			metadata.HasDatabaseSpecificOps = true
-			if !p.stringInSlice(funcName, metadata.DatabaseOperations) {
+			if !slices.Contains(metadata.DatabaseOperations, funcName) {
 				metadata.DatabaseOperations = append(metadata.DatabaseOperations, funcName)
 			}
 		}
@@ -267,7 +242,7 @@ func (p *PGQueryParser) checkExpressionForMetadata(node *pg_query.Node, metadata
 		if p.isJSONBOperator(aExpr) {
 			metadata.DatabaseType = "postgresql"
 			metadata.HasDatabaseSpecificOps = true
-			if !p.stringInSlice("jsonb", metadata.DatabaseOperations) {
+			if !slices.Contains(metadata.DatabaseOperations, "jsonb") {
 				metadata.DatabaseOperations = append(metadata.DatabaseOperations, "jsonb")
 			}
 		}
@@ -286,41 +261,48 @@ func (p *PGQueryParser) checkExpressionForMetadata(node *pg_query.Node, metadata
 	}
 }
 
+// bucketInfoFromFuncCall returns a BucketInfo if fc is a date_trunc call with
+// the expected arguments, or nil otherwise.
+func bucketInfoFromFuncCall(fc *pg_query.FuncCall) *parser.BucketInfo {
+	if fc == nil {
+		return nil
+	}
+	fname := ""
+	if len(fc.Funcname) > 0 {
+		if s := fc.Funcname[len(fc.Funcname)-1].GetString_(); s != nil {
+			fname = strings.ToLower(s.Sval)
+		}
+	}
+	if fname != "date_trunc" || len(fc.Args) < 2 {
+		return nil
+	}
+	bi := &parser.BucketInfo{Function: "date_trunc"}
+	if a := fc.Args[0].GetAConst(); a != nil {
+		if sv := a.GetSval(); sv != nil {
+			bi.Interval = sv.Sval
+		}
+	}
+	if c := fc.Args[1].GetColumnRef(); c != nil && len(c.Fields) > 0 {
+		if s := c.Fields[len(c.Fields)-1].GetString_(); s != nil {
+			bi.Column = s.Sval
+		}
+		if len(c.Fields) > 1 {
+			if s := c.Fields[0].GetString_(); s != nil {
+				bi.ColumnTable = s.Sval
+			}
+		}
+	}
+	return bi
+}
+
 // checkGroupByForBuckets detects date_trunc and other time bucketing in GROUP BY
 func (p *PGQueryParser) checkGroupByForBuckets(node *pg_query.Node, metadata *parser.QueryMetadata) {
 	if node == nil {
 		return
 	}
-	if funcCall := node.GetFuncCall(); funcCall != nil {
-		funcName := ""
-		if len(funcCall.Funcname) > 0 {
-			if str := funcCall.Funcname[0].GetString_(); str != nil {
-				funcName = strings.ToLower(str.Sval)
-			}
-		}
-		if funcName == "date_trunc" && len(funcCall.Args) >= 2 {
-			metadata.HasTimeBucket = true
-			bucketInfo := &parser.BucketInfo{Function: "date_trunc"}
-			if firstArg := funcCall.Args[0].GetAConst(); firstArg != nil {
-				if sval := firstArg.GetSval(); sval != nil {
-					bucketInfo.Interval = sval.Sval
-				}
-			}
-			if len(funcCall.Args) > 1 {
-				if colRef := funcCall.Args[1].GetColumnRef(); colRef != nil && len(colRef.Fields) > 0 {
-					lastField := colRef.Fields[len(colRef.Fields)-1]
-					if str := lastField.GetString_(); str != nil {
-						bucketInfo.Column = str.Sval
-					}
-					if len(colRef.Fields) > 1 {
-						if str := colRef.Fields[0].GetString_(); str != nil {
-							bucketInfo.ColumnTable = str.Sval
-						}
-					}
-				}
-			}
-			metadata.BucketInfo = bucketInfo
-		}
+	if bi := bucketInfoFromFuncCall(node.GetFuncCall()); bi != nil {
+		metadata.HasTimeBucket = true
+		metadata.BucketInfo = bi
 	}
 }
 
@@ -333,14 +315,14 @@ func (p *PGQueryParser) checkWhereClauseForOperations(node *pg_query.Node, metad
 		if p.isILikeOperator(aExpr) {
 			metadata.DatabaseType = "postgresql"
 			metadata.HasDatabaseSpecificOps = true
-			if !p.stringInSlice("ilike", metadata.DatabaseOperations) {
+			if !slices.Contains(metadata.DatabaseOperations, "ilike") {
 				metadata.DatabaseOperations = append(metadata.DatabaseOperations, "ilike")
 			}
 		}
 		if p.isJSONBOperator(aExpr) {
 			metadata.DatabaseType = "postgresql"
 			metadata.HasDatabaseSpecificOps = true
-			if !p.stringInSlice("jsonb", metadata.DatabaseOperations) {
+			if !slices.Contains(metadata.DatabaseOperations, "jsonb") {
 				metadata.DatabaseOperations = append(metadata.DatabaseOperations, "jsonb")
 			}
 		}

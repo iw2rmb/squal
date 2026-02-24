@@ -13,6 +13,12 @@ func forEachSelectStmt(sql string, fn func(sel *pg_query.SelectStmt)) error {
 	if err != nil {
 		return err
 	}
+	forEachSelectStmtFromTree(tree, fn)
+	return nil
+}
+
+// forEachSelectStmtFromTree calls fn for every top-level SelectStmt in a pre-parsed tree.
+func forEachSelectStmtFromTree(tree *pg_query.ParseResult, fn func(sel *pg_query.SelectStmt)) {
 	for _, stmt := range tree.Stmts {
 		if stmt.Stmt == nil {
 			continue
@@ -21,5 +27,4 @@ func forEachSelectStmt(sql string, fn func(sel *pg_query.SelectStmt)) error {
 			fn(sel)
 		}
 	}
-	return nil
 }

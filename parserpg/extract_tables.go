@@ -14,7 +14,11 @@ func (p *PGQueryParser) ExtractTables(sql string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	return p.extractTablesFromTree(tree), nil
+}
 
+// extractTablesFromTree extracts table names from a pre-parsed tree.
+func (p *PGQueryParser) extractTablesFromTree(tree *pg_query.ParseResult) []string {
 	tables := make(map[string]bool)
 	for _, stmt := range tree.Stmts {
 		if stmt.Stmt == nil {
@@ -23,12 +27,11 @@ func (p *PGQueryParser) ExtractTables(sql string) ([]string, error) {
 		p.extractTablesFromNode(stmt.Stmt, tables)
 	}
 
-	// Convert map to slice
 	result := make([]string, 0, len(tables))
 	for table := range tables {
 		result = append(result, table)
 	}
-	return result, nil
+	return result
 }
 
 // extractTablesFromNode recursively extracts table references from a node
