@@ -231,6 +231,49 @@ func TestActiveClauseAtCursorFromAfterCommaNeedsTable(t *testing.T) {
 	}
 }
 
+func TestActiveClauseAtCursorJoinOn(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		sql  string
+		want contextClause
+	}{
+		{
+			name: "join on clause after on keyword",
+			sql:  "select o.id from orders o join customers c on ",
+			want: contextClauseJoinOn,
+		},
+		{
+			name: "join on clause stays active in predicate tail",
+			sql:  "select o.id from orders o join customers c on o.customer_id = c.id and ",
+			want: contextClauseJoinOn,
+		},
+		{
+			name: "where clause overrides join on",
+			sql:  "select o.id from orders o join customers c on o.customer_id = c.id where ",
+			want: contextClauseWhere,
+		},
+		{
+			name: "join clause before on stays join",
+			sql:  "select o.id from orders o join customers c ",
+			want: contextClauseJoin,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := activeClauseAtCursor(tc.sql, len(tc.sql))
+			if got != tc.want {
+				t.Fatalf("activeClauseAtCursor() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
 func TestActiveClauseIgnoresQuotedKeywords(t *testing.T) {
 	t.Parallel()
 

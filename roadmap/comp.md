@@ -94,7 +94,7 @@ Legend: [ ] todo, [x] done.
   - Tests: keep and extend existing `TestActiveClauseAtCursorFromTail` / `TestActiveClauseAtCursorFromAfterCommaNeedsTable`.
 
 ## Phase 3 — Dedicated JOIN-ON Entry Context
-- [ ] Introduce explicit `JOIN ON` context — Stop ranking table names above predicate-building objects at `... ON _`.
+- [x] Introduce explicit `JOIN ON` context — Stop ranking table names above predicate-building objects at `... ON _`.
   - Repository: `sql`
   - Component: `complete`
   - Scope: Add `contextClauseJoinOn` in `complete/context.go` and classify when cursor is after `ON` belonging to current join expression.
@@ -105,7 +105,7 @@ Legend: [ ] todo, [x] done.
     ```
   - Tests: add `TestActiveClauseAtCursorJoinOn` in `complete/context_builder_test.go`.
 
-- [ ] Tune candidate families and ranking for `JOIN ON` — Prefer join-condition composition over unrelated object-name completions.
+- [x] Tune candidate families and ranking for `JOIN ON` — Prefer join-condition composition over unrelated object-name completions.
   - Repository: `sql`
   - Component: `complete`
   - Scope:

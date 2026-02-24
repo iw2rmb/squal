@@ -40,6 +40,10 @@ var contextScoreTable = map[contextScoreKey]float64{
 	{contextClauseJoin, CandidateKindSchema}:  6,
 	{contextClauseJoin, CandidateKindSnippet}: 5,
 	{contextClauseJoin, CandidateKindKeyword}: 4,
+	// JOIN ON
+	{contextClauseJoinOn, CandidateKindColumn}:  60,
+	{contextClauseJoinOn, CandidateKindKeyword}: 40,
+	{contextClauseJoinOn, CandidateKindSnippet}: 20,
 	// WHERE
 	{contextClauseWhere, CandidateKindColumn}:  55,
 	{contextClauseWhere, CandidateKindJoin}:    12,

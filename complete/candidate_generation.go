@@ -34,6 +34,21 @@ func generateCandidates(ctx completionContext, catalog CatalogSnapshot, req Requ
 		return generateDegradedCandidates(ctx, idx, req, cursorPrefix)
 	}
 
+	if ctx.ActiveClause == contextClauseJoinOn {
+		out := newCandidateSet()
+		addColumnCandidates(out, idx, ctx)
+		addKeywordCandidates(out, ctx)
+		if req.IncludeSnippets {
+			addSnippetCandidates(out)
+		}
+
+		out.applyRanking(rankingContext{
+			activeClause: ctx.ActiveClause,
+			cursorPrefix: cursorPrefix,
+		})
+		return out.finalize(req.MaxCandidates)
+	}
+
 	out := newCandidateSet()
 	addSchemaCandidates(out, idx)
 	addTableCandidates(out, idx, ctx)
@@ -56,7 +71,7 @@ func generateDegradedCandidates(ctx completionContext, idx catalogIndex, req Req
 	out := newCandidateSet()
 
 	switch {
-	case isExpressionClause(ctx.ActiveClause, req):
+	case isExpressionClause(ctx.ActiveClause):
 		addColumnCandidates(out, idx, ctx)
 		addKeywordCandidates(out, ctx)
 	case ctx.ActiveClause == contextClauseFrom:
@@ -84,33 +99,13 @@ func generateDegradedCandidates(ctx completionContext, idx catalogIndex, req Req
 	return out.finalize(req.MaxCandidates)
 }
 
-func isExpressionClause(clause contextClause, req Request) bool {
+func isExpressionClause(clause contextClause) bool {
 	switch clause {
-	case contextClauseWhere, contextClauseGroupBy, contextClauseOrderBy:
+	case contextClauseWhere, contextClauseGroupBy, contextClauseOrderBy, contextClauseJoinOn:
 		return true
-	case contextClauseJoin:
-		return isLikelyJoinOn(req.SQL, req.CursorByte)
 	default:
 		return false
 	}
-}
-
-func isLikelyJoinOn(sql string, cursor int) bool {
-	if cursor < 0 {
-		cursor = 0
-	}
-	if cursor > len(sql) {
-		cursor = len(sql)
-	}
-
-	prefix := strings.ToUpper(sql[:cursor])
-	lastJoin := strings.LastIndex(prefix, "JOIN")
-	if lastJoin < 0 {
-		return false
-	}
-
-	lastOn := strings.LastIndex(prefix, " ON ")
-	return lastOn > lastJoin
 }
 
 func newCandidateSet() *candidateSet {
@@ -350,6 +345,20 @@ func addKeywordCandidates(out *candidateSet, ctx completionContext) {
 		addKeywordCandidate(out, "JOIN")
 		addKeywordCandidate(out, "LEFT JOIN")
 		addKeywordCandidate(out, "INNER JOIN")
+	case contextClauseJoinOn:
+		addKeywordCandidate(out, "AND")
+		addKeywordCandidate(out, "OR")
+		addKeywordCandidate(out, "NOT")
+		addKeywordCandidate(out, "IS")
+		addKeywordCandidate(out, "IN")
+		addKeywordCandidate(out, "LIKE")
+		addKeywordCandidate(out, "BETWEEN")
+		addKeywordCandidate(out, "=")
+		addKeywordCandidate(out, "<>")
+		addKeywordCandidate(out, ">")
+		addKeywordCandidate(out, ">=")
+		addKeywordCandidate(out, "<")
+		addKeywordCandidate(out, "<=")
 	}
 }
 

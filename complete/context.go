@@ -12,6 +12,7 @@ const (
 	contextClauseFrom     contextClause = "from"
 	contextClauseFromTail contextClause = "from_tail"
 	contextClauseJoin     contextClause = "join"
+	contextClauseJoinOn   contextClause = "join_on"
 	contextClauseWhere    contextClause = "where"
 	contextClauseGroupBy  contextClause = "group_by"
 	contextClauseOrderBy  contextClause = "order_by"
@@ -61,6 +62,7 @@ func activeClauseAtCursor(sql string, cursor int) contextClause {
 	prefix := sql[:cursor]
 	lastClause := contextClauseUnknown
 	lastFromPos := -1
+	lastJoinPos := -1
 	state := clauseScanDefault
 
 	for i := 0; i < len(prefix); {
@@ -145,6 +147,14 @@ func activeClauseAtCursor(sql string, cursor int) contextClause {
 		}
 		if end, ok := matchSingleWordClause(prefix, i, "JOIN"); ok {
 			lastClause = contextClauseJoin
+			lastJoinPos = i
+			i = end
+			continue
+		}
+		if end, ok := matchSingleWordClause(prefix, i, "ON"); ok {
+			if lastJoinPos >= 0 && lastJoinPos < i {
+				lastClause = contextClauseJoinOn
+			}
 			i = end
 			continue
 		}

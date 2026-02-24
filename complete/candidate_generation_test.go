@@ -296,6 +296,89 @@ func TestFromClauseStillSuggestsTablesWhileTypingSource(t *testing.T) {
 	}
 }
 
+func TestJoinOnPrefersColumnsAndPredicates(t *testing.T) {
+	t.Parallel()
+
+	engine := NewEngine(Config{
+		Parser: &parserStub{
+			metadata: &parser.QueryMetadata{
+				Tables: []string{"orders", "customers"},
+				JoinConditions: []parser.JoinCondition{
+					{
+						Type:        core.JoinTypeInner,
+						LeftTable:   "orders",
+						RightTable:  "customers",
+						LeftAlias:   "o",
+						RightAlias:  "c",
+						LeftColumn:  "customer_id",
+						RightColumn: "id",
+					},
+				},
+			},
+		},
+	})
+	version, err := engine.InitCatalog(catalogSnapshotVariantA())
+	if err != nil {
+		t.Fatalf("InitCatalog() error = %v", err)
+	}
+
+	sql := "select o.id from orders o join customers c on "
+	resp, err := engine.Complete(Request{
+		SQL:            sql,
+		CursorByte:     len(sql),
+		CatalogVersion: version,
+		MaxCandidates:  200,
+	})
+	if err != nil {
+		t.Fatalf("Complete() error = %v", err)
+	}
+
+	if len(resp.Candidates) == 0 {
+		t.Fatalf("Complete() candidates = 0, want >0")
+	}
+	if hasKind(resp.Candidates, CandidateKindTable) {
+		t.Fatalf("unexpected table candidates in JOIN ON context: %#v", resp.Candidates)
+	}
+	if hasKind(resp.Candidates, CandidateKindSchema) {
+		t.Fatalf("unexpected schema candidates in JOIN ON context: %#v", resp.Candidates)
+	}
+	if hasKind(resp.Candidates, CandidateKindJoin) {
+		t.Fatalf("unexpected join candidates in JOIN ON context: %#v", resp.Candidates)
+	}
+	if !hasCandidate(resp.Candidates, CandidateKindColumn, "o.customer_id", "o.customer_id") {
+		t.Fatalf("missing left-side alias column in JOIN ON context: %#v", resp.Candidates)
+	}
+	if !hasCandidate(resp.Candidates, CandidateKindColumn, "c.id", "c.id") {
+		t.Fatalf("missing right-side alias column in JOIN ON context: %#v", resp.Candidates)
+	}
+	if !hasCandidate(resp.Candidates, CandidateKindKeyword, "AND", "AND ") {
+		t.Fatalf("missing AND keyword in JOIN ON context: %#v", resp.Candidates)
+	}
+	if !hasCandidate(resp.Candidates, CandidateKindKeyword, "=", "= ") {
+		t.Fatalf("missing comparison operator keyword in JOIN ON context: %#v", resp.Candidates)
+	}
+	if resp.Candidates[0].Kind != CandidateKindColumn {
+		t.Fatalf("top candidate kind = %q, want %q; candidates=%#v", resp.Candidates[0].Kind, CandidateKindColumn, resp.Candidates)
+	}
+
+	firstKeyword := -1
+	firstSnippet := -1
+	for i, candidate := range resp.Candidates {
+		if firstKeyword < 0 && candidate.Kind == CandidateKindKeyword {
+			firstKeyword = i
+		}
+		if firstSnippet < 0 && candidate.Kind == CandidateKindSnippet {
+			firstSnippet = i
+		}
+	}
+	if firstKeyword < 0 {
+		t.Fatalf("no keyword candidates in JOIN ON context: %#v", resp.Candidates)
+	}
+	if firstSnippet >= 0 && firstKeyword > firstSnippet {
+		t.Fatalf("keyword candidates should rank above snippets in JOIN ON context: keywords=%d snippets=%d candidates=%#v", firstKeyword, firstSnippet, resp.Candidates)
+	}
+}
+
 func TestParseDegradedClauseScopedCandidates(t *testing.T) {
 	t.Parallel()
 
