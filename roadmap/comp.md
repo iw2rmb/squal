@@ -3,9 +3,9 @@
 Scope: Eliminate irrelevant or semantically-wrong completion candidates at SQL entry points, while preserving deterministic ranking, parser fallback availability, and existing public API contracts.
 
 Documentation:
-- `roadmap/complete.md`
-- `design/completions.md`
 - `research/sql.md`
+- `docs/parser-migration.md`
+- `roadmap/comp.md`
 - `parser/interface.go`
 - `complete/context.go`
 - `complete/context_builder.go`
@@ -14,8 +14,15 @@ Documentation:
 
 Legend: [ ] todo, [x] done.
 
+## Historical Design Basis (Recovered From Git History)
+- `design/completions.md` was deleted in commit `f482e2e` (2026-02-24). This roadmap now carries the design constraints required for ongoing completion hardening work.
+- Deterministic behavior remains mandatory: identical request identity must produce stable candidate ordering and stable diagnostics.
+- Parser-degraded fallback remains mandatory: completion must remain available with explicit `ParseDegraded` diagnostics.
+- Relevance hardening must be clause-aware: expression clauses must avoid global schema/table noise when parser metadata is unavailable.
+- Package boundaries remain unchanged: `complete` must stay parser-neutral and must not import `parserpg`.
+
 ## Phase 1 — Parse-Degraded Context Recovery
-- [ ] Preserve clause-awareness when parser metadata extraction fails — Prevent global/noisy fallback candidates at `WHERE`, `JOIN ... ON`, `GROUP BY`, and `ORDER BY` entry points.
+- [x] Preserve clause-awareness when parser metadata extraction fails — Prevent global/noisy fallback candidates at `WHERE`, `JOIN ... ON`, `GROUP BY`, and `ORDER BY` entry points.
   - Repository: `sql`
   - Component: `complete`
   - Scope: Update `buildContext` in `complete/context_builder.go` so parser errors return `completionContext{ActiveClause: activeClauseAtCursor(req.SQL, req.CursorByte), ParseDegraded: true}` instead of only `ParseDegraded`. Add helper for this fallback shape to keep diagnostics behavior unchanged.
@@ -28,9 +35,9 @@ Legend: [ ] todo, [x] done.
         }, []Diagnostic{{Code: ParseDegraded, Message: "parser metadata extraction failed"}}
     }
     ```
-  - Tests: `go test ./complete/... -run 'TestParseDegraded'` — degraded responses still include `ParseDegraded`, but now follow clause-specific relevance rules.
+  - Tests: `go test ./complete/... -run 'TestParseDegraded'` — degraded responses still include `ParseDegraded`, and now carry clause-aware degraded context.
 
-- [ ] Add degraded-mode candidate policy by clause — Keep completion available without flooding with irrelevant schema/table objects.
+- [x] Add degraded-mode candidate policy by clause — Keep completion available without flooding with irrelevant schema/table objects.
   - Repository: `sql`
   - Component: `complete`
   - Scope: In `complete/candidate_generation.go`, gate candidate families when `ctx.ParseDegraded` is true:
@@ -45,7 +52,7 @@ Legend: [ ] todo, [x] done.
         return out.finalize(req.MaxCandidates)
     }
     ```
-  - Tests: add `TestParseDegradedClauseScopedCandidates` in `complete/candidate_generation_test.go` — verify no `CandidateKindTable`/`CandidateKindSchema` for degraded `... where ` and degraded `... join ... on `.
+  - Tests: add `TestParseDegradedClauseScopedCandidates` in `complete/candidate_generation_test.go` — verify no `CandidateKindTable`/`CandidateKindSchema` for degraded `... where ` and degraded `... join ... on `, while degraded `from` still returns table candidates.
 
 ## Phase 2 — Token-Aware Clause Detection
 - [ ] Replace raw substring clause matching with token-aware scanning — Avoid false context switches caused by keywords in string literals, comments, or identifiers.
@@ -161,12 +168,11 @@ Legend: [ ] todo, [x] done.
   - Repository: `sql`
   - Component: `complete`, docs
   - Scope: After implementation, update:
-    - `design/completions.md` (new clause model + gating rules),
-    - `roadmap/complete.md` (completed steps),
-    - this file `roadmap/comp.md` (mark done).
+    - this file `roadmap/comp.md` (phase status + historical design constraints),
+    - `docs/parser-migration.md` and `research/sql.md` references if contract/ownership statements change.
   - Snippets:
     ```bash
     go test ./core/... ./parser/... ./complete/...
-    rg -n "contextClauseJoinOn|ParseDegraded|FROM-tail" complete design roadmap
+    rg -n "contextClauseJoinOn|ParseDegraded|FROM-tail" complete roadmap docs research
     ```
   - Tests: Full target suite green; docs accurately describe actual completion behavior and fallback semantics.

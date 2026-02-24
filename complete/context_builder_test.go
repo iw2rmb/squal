@@ -83,20 +83,28 @@ func TestParseDegraded(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name   string
-		parser parser.Parser
+		name       string
+		parser     parser.Parser
+		sql        string
+		wantClause contextClause
 	}{
 		{
-			name:   "nil parser dependency",
-			parser: nil,
+			name:       "nil parser dependency",
+			parser:     nil,
+			sql:        "select 1 where ",
+			wantClause: contextClauseWhere,
 		},
 		{
-			name:   "parser returns error",
-			parser: failedParserStub(),
+			name:       "parser returns error",
+			parser:     failedParserStub(),
+			sql:        "select * from ",
+			wantClause: contextClauseFrom,
 		},
 		{
-			name:   "parser returns nil metadata",
-			parser: nilMetadataParserStub(),
+			name:       "parser returns nil metadata",
+			parser:     nilMetadataParserStub(),
+			sql:        "select * from orders ",
+			wantClause: contextClauseFromTail,
 		},
 	}
 
@@ -106,14 +114,33 @@ func TestParseDegraded(t *testing.T) {
 			t.Parallel()
 
 			engine := NewEngine(Config{Parser: tc.parser})
+			impl, ok := engine.(*EngineImpl)
+			if !ok {
+				t.Fatalf("engine concrete type = %T, want *EngineImpl", engine)
+			}
+
+			ctx, diags := impl.buildContext(Request{
+				SQL:        tc.sql,
+				CursorByte: len(tc.sql),
+			})
+			if !ctx.ParseDegraded {
+				t.Fatalf("buildContext() ParseDegraded = %v, want true", ctx.ParseDegraded)
+			}
+			if ctx.ActiveClause != tc.wantClause {
+				t.Fatalf("buildContext() ActiveClause = %q, want %q", ctx.ActiveClause, tc.wantClause)
+			}
+			if len(diags) != 1 || diags[0].Code != ParseDegraded {
+				t.Fatalf("buildContext() diagnostics = %#v, want one %q diagnostic", diags, ParseDegraded)
+			}
+
 			version, err := engine.InitCatalog(catalogSnapshotVariantA())
 			if err != nil {
 				t.Fatalf("InitCatalog() error = %v", err)
 			}
 
 			resp, err := engine.Complete(Request{
-				SQL:            "select 1",
-				CursorByte:     len("select 1"),
+				SQL:            tc.sql,
+				CursorByte:     len(tc.sql),
 				CatalogVersion: version,
 			})
 			if err != nil {

@@ -296,6 +296,92 @@ func TestFromClauseStillSuggestsTablesWhileTypingSource(t *testing.T) {
 	}
 }
 
+func TestParseDegradedClauseScopedCandidates(t *testing.T) {
+	t.Parallel()
+
+	engine := NewEngine(Config{Parser: failedParserStub()})
+	version, err := engine.InitCatalog(catalogSnapshotVariantA())
+	if err != nil {
+		t.Fatalf("InitCatalog() error = %v", err)
+	}
+
+	tests := []struct {
+		name             string
+		sql              string
+		wantTable        bool
+		wantSchema       bool
+		wantColumn       bool
+		wantWhereKeyword bool
+	}{
+		{
+			name:       "degraded where suppresses schema and table",
+			sql:        "select o.id from orders o join customers c on o.customer_id = c.id where ",
+			wantTable:  false,
+			wantSchema: false,
+			wantColumn: false,
+		},
+		{
+			name:       "degraded join on suppresses schema and table",
+			sql:        "select o.id from orders o join customers c on ",
+			wantTable:  false,
+			wantSchema: false,
+			wantColumn: false,
+		},
+		{
+			name:       "degraded from keeps table candidates",
+			sql:        "select * from ",
+			wantTable:  true,
+			wantSchema: false,
+			wantColumn: false,
+		},
+		{
+			name:             "degraded from tail keeps continuation keywords",
+			sql:              "select * from orders ",
+			wantTable:        false,
+			wantSchema:       false,
+			wantColumn:       false,
+			wantWhereKeyword: true,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			resp, err := engine.Complete(Request{
+				SQL:            tc.sql,
+				CursorByte:     len(tc.sql),
+				CatalogVersion: version,
+				MaxCandidates:  200,
+			})
+			if err != nil {
+				t.Fatalf("Complete() error = %v", err)
+			}
+
+			if len(resp.Candidates) == 0 {
+				t.Fatalf("Complete() candidates = 0, want >0")
+			}
+			if len(resp.Diagnostics) != 1 || resp.Diagnostics[0].Code != ParseDegraded {
+				t.Fatalf("Complete() diagnostics = %#v, want one %q diagnostic", resp.Diagnostics, ParseDegraded)
+			}
+
+			if hasKind(resp.Candidates, CandidateKindTable) != tc.wantTable {
+				t.Fatalf("table candidates mismatch: got=%v want=%v candidates=%#v", hasKind(resp.Candidates, CandidateKindTable), tc.wantTable, resp.Candidates)
+			}
+			if hasKind(resp.Candidates, CandidateKindSchema) != tc.wantSchema {
+				t.Fatalf("schema candidates mismatch: got=%v want=%v candidates=%#v", hasKind(resp.Candidates, CandidateKindSchema), tc.wantSchema, resp.Candidates)
+			}
+			if hasKind(resp.Candidates, CandidateKindColumn) != tc.wantColumn {
+				t.Fatalf("column candidates mismatch: got=%v want=%v candidates=%#v", hasKind(resp.Candidates, CandidateKindColumn), tc.wantColumn, resp.Candidates)
+			}
+			if tc.wantWhereKeyword && !hasCandidate(resp.Candidates, CandidateKindKeyword, "WHERE", "WHERE ") {
+				t.Fatalf("missing WHERE keyword candidate: %#v", resp.Candidates)
+			}
+		})
+	}
+}
+
 func hasCandidate(candidates []Candidate, kind CandidateKind, label string, insert string) bool {
 	for _, candidate := range candidates {
 		if candidate.Kind == kind && candidate.Label == label && candidate.InsertText == insert {

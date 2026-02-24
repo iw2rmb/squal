@@ -12,12 +12,12 @@ type candidateSet struct {
 
 func generateCandidates(ctx completionContext, catalog CatalogSnapshot, req Request) []Candidate {
 	idx := buildCatalogIndex(catalog)
-	out := newCandidateSet()
 	cursorPrefix := cursorPrefixAt(req.SQL, req.CursorByte)
 
 	// For SELECT without visible source tables, return final-form projection
 	// candidates only, so users can complete a runnable query in one accept.
 	if ctx.ActiveClause == contextClauseSelect && len(gatherTableBindings(idx, ctx)) == 0 {
+		out := newCandidateSet()
 		if cursorPrefix == "" {
 			addSelectStarFromCandidates(out, idx)
 		} else {
@@ -30,6 +30,11 @@ func generateCandidates(ctx completionContext, catalog CatalogSnapshot, req Requ
 		return out.finalize(req.MaxCandidates)
 	}
 
+	if ctx.ParseDegraded {
+		return generateDegradedCandidates(ctx, idx, req, cursorPrefix)
+	}
+
+	out := newCandidateSet()
 	addSchemaCandidates(out, idx)
 	addTableCandidates(out, idx, ctx)
 	addColumnCandidates(out, idx, ctx)
@@ -45,6 +50,67 @@ func generateCandidates(ctx completionContext, catalog CatalogSnapshot, req Requ
 	})
 
 	return out.finalize(req.MaxCandidates)
+}
+
+func generateDegradedCandidates(ctx completionContext, idx catalogIndex, req Request, cursorPrefix string) []Candidate {
+	out := newCandidateSet()
+
+	switch {
+	case isExpressionClause(ctx.ActiveClause, req):
+		addColumnCandidates(out, idx, ctx)
+		addKeywordCandidates(out, ctx)
+	case ctx.ActiveClause == contextClauseFrom:
+		addTableCandidates(out, idx, ctx)
+	case ctx.ActiveClause == contextClauseFromTail:
+		addJoinCandidates(out, idx, ctx)
+		addKeywordCandidates(out, ctx)
+	default:
+		addSchemaCandidates(out, idx)
+		addTableCandidates(out, idx, ctx)
+		addColumnCandidates(out, idx, ctx)
+		addJoinCandidates(out, idx, ctx)
+		addKeywordCandidates(out, ctx)
+	}
+
+	if req.IncludeSnippets {
+		addSnippetCandidates(out)
+	}
+
+	out.applyRanking(rankingContext{
+		activeClause: ctx.ActiveClause,
+		cursorPrefix: cursorPrefix,
+	})
+
+	return out.finalize(req.MaxCandidates)
+}
+
+func isExpressionClause(clause contextClause, req Request) bool {
+	switch clause {
+	case contextClauseWhere, contextClauseGroupBy, contextClauseOrderBy:
+		return true
+	case contextClauseJoin:
+		return isLikelyJoinOn(req.SQL, req.CursorByte)
+	default:
+		return false
+	}
+}
+
+func isLikelyJoinOn(sql string, cursor int) bool {
+	if cursor < 0 {
+		cursor = 0
+	}
+	if cursor > len(sql) {
+		cursor = len(sql)
+	}
+
+	prefix := strings.ToUpper(sql[:cursor])
+	lastJoin := strings.LastIndex(prefix, "JOIN")
+	if lastJoin < 0 {
+		return false
+	}
+
+	lastOn := strings.LastIndex(prefix, " ON ")
+	return lastOn > lastJoin
 }
 
 func newCandidateSet() *candidateSet {

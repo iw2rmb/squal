@@ -7,10 +7,8 @@ This document defines the target architecture for shared SQL capabilities used b
 - optional standalone SQL tooling
 
 Related:
-- SQL implementation design baseline: `../design/sql.md`
 - Parser migration status: `../docs/parser-migration.md`
-- Parser roadmap status: `../roadmap/parser.md`
-- Completion implementation design: `../design/completions.md`
+- Completion hardening roadmap status: `../roadmap/comp.md`
 - Aster-side SQL LST ownership note: `../../aster/research/sql-lst.md`
 
 ## Decision
@@ -221,9 +219,9 @@ Aster CI consumes released SQL module versions; it does not build SQL parser int
 ## Migration Plan
 
 Status:
-- completed: parser contract extraction to `parser` (`roadmap/sql/phase-1-parser-contracts.md`)
-- completed: PostgreSQL parser migration to `parserpg` and `mill` consumer switch (`roadmap/parser.md`)
-- completed: `complete` package implementation and acceptance/doc sync (`roadmap/complete.md`)
+- completed: parser contract extraction into shared `parser` package
+- completed: PostgreSQL parser migration to `parserpg` and `mill` consumer switch (`docs/parser-migration.md`)
+- completed: `complete` package implementation baseline; current relevance hardening tracked in `roadmap/comp.md`
 
 1. Extract parser contracts from `mill/internal` into `parser`.
 2. Port PostgreSQL parser implementation to `parserpg` with test parity.

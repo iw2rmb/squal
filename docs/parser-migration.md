@@ -1,12 +1,11 @@
 # Parser Migration State
 
 Related:
-- `../roadmap/parser.md`
-- `../roadmap/complete.md`
-- `../design/parser.md`
-- `../design/completions.md`
-- `../design/sql.md`
+- `../roadmap/comp.md`
 - `../research/sql.md`
+
+Note:
+- Historical design/roadmap files removed in cleanup commit `f482e2e` are superseded by active constraints tracked in `../roadmap/comp.md`.
 
 ## Current Ownership
 

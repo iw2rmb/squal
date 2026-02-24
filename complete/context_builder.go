@@ -9,33 +9,34 @@ import (
 
 func (e *EngineImpl) buildContext(req Request) (completionContext, []Diagnostic) {
 	if e.cfg.Parser == nil {
-		return completionContext{ParseDegraded: true}, []Diagnostic{
-			{
-				Code:    ParseDegraded,
-				Message: "parser dependency is not configured",
-			},
-		}
+		return degradedContext(req.SQL, req.CursorByte, "parser dependency is not configured")
 	}
 
 	meta, err := e.cfg.Parser.ExtractMetadata(req.SQL)
 	if err != nil {
-		return completionContext{ParseDegraded: true}, []Diagnostic{
-			{
-				Code:    ParseDegraded,
-				Message: "parser metadata extraction failed",
-			},
-		}
+		return degradedContext(req.SQL, req.CursorByte, "parser metadata extraction failed")
 	}
 	if meta == nil {
-		return completionContext{ParseDegraded: true}, []Diagnostic{
-			{
-				Code:    ParseDegraded,
-				Message: "parser metadata is unavailable",
-			},
-		}
+		return degradedContext(req.SQL, req.CursorByte, "parser metadata is unavailable")
 	}
 
 	return buildContext(meta, req.SQL, req.CursorByte), nil
+}
+
+func degradedContext(sql string, cursor int, message string) (completionContext, []Diagnostic) {
+	ctx := completionContext{
+		ActiveClause:  activeClauseAtCursor(sql, cursor),
+		ParseDegraded: true,
+	}
+
+	diags := []Diagnostic{
+		{
+			Code:    ParseDegraded,
+			Message: message,
+		},
+	}
+
+	return ctx, diags
 }
 
 func buildContext(meta *parser.QueryMetadata, sql string, cursor int) completionContext {
