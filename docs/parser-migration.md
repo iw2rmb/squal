@@ -1,11 +1,11 @@
 # Parser Migration State
 
 Related:
-- `../roadmap/comp.md`
+- `../design/squalld.md`
 - `../research/sql.md`
 
 Note:
-- Historical design/roadmap files removed in cleanup commit `f482e2e` are superseded by active constraints tracked in `../roadmap/comp.md`.
+- Historical design/roadmap files removed in cleanup commit `f482e2e` are superseded by active constraints tracked in `../design/squalld.md`.
 
 ## Current Ownership
 
