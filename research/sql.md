@@ -7,7 +7,7 @@ This document defines the target architecture for shared SQL capabilities used b
 - optional standalone SQL tooling
 
 Related:
-- Parser migration status: `../docs/parser-migration.md`
+- Extracted module contracts: `../docs/extracted-modules.md`
 - Squall API/server design: `../design/squalld.md`
 - Aster-side SQL LST ownership note: `../../aster/research/sql-lst.md`
 
@@ -220,7 +220,7 @@ Aster CI consumes released SQL module versions; it does not build SQL parser int
 
 Status:
 - completed: parser contract extraction into shared `parser` package
-- completed: PostgreSQL parser migration to `parserpg` and `mill` consumer switch (`docs/parser-migration.md`)
+- completed: PostgreSQL parser migration to `parserpg` and `mill` consumer switch (`docs/extracted-modules.md`)
 - completed: `complete` package implementation baseline; server/API direction tracked in `design/squalld.md`
 
 1. Extract parser contracts from `mill/internal` into `parser`.

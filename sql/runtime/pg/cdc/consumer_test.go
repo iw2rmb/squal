@@ -87,8 +87,8 @@ func TestDefaultConsumerConfig(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultConsumerConfig()
-	if cfg.SlotName != SlotName("mill_slot") {
-		t.Fatalf("default SlotName = %q, want %q", cfg.SlotName, SlotName("mill_slot"))
+	if cfg.SlotName != SlotName("squall_slot") {
+		t.Fatalf("default SlotName = %q, want %q", cfg.SlotName, SlotName("squall_slot"))
 	}
 	if cfg.StatusInterval != 10*time.Second {
 		t.Fatalf("default StatusInterval = %v, want 10s", cfg.StatusInterval)

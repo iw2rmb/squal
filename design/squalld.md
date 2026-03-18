@@ -2,7 +2,7 @@
 
 Related:
 - `../research/sql.md`
-- `../docs/parser-migration.md`
+- `../docs/extracted-modules.md`
 - `../complete/engine.go`
 - `../complete/types.go`
 - `../core/catalog.go`

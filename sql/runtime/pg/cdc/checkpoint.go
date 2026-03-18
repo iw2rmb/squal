@@ -6,7 +6,8 @@ import (
 	"fmt"
 )
 
-const checkpointTableName = "mill_cdc_checkpoint"
+const checkpointTableName = "squall_cdc_checkpoint"
+const checkpointUpdatedAtIndexName = "idx_squall_cdc_checkpoint_updated_at"
 
 // CheckpointManager persists checkpoint state and can optionally ack downstream.
 type CheckpointManager struct {
@@ -58,19 +59,24 @@ func EnsureCheckpointTable(ctx context.Context, db *sql.DB) error {
 		return ErrNilDatabase
 	}
 
-	createTableSQL := `
-		CREATE TABLE IF NOT EXISTS mill_cdc_checkpoint (
+	createTableSQL := fmt.Sprintf(`
+		CREATE TABLE IF NOT EXISTS %s (
 			slot_name TEXT PRIMARY KEY,
 			last_lsn TEXT NOT NULL,
 			updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 		)
-	`
+	`, checkpointTableName)
 
 	if _, err := db.ExecContext(ctx, createTableSQL); err != nil {
 		return fmt.Errorf("failed to create checkpoint table: %w", err)
 	}
 
-	_, _ = db.ExecContext(ctx, `CREATE INDEX IF NOT EXISTS idx_mill_cdc_checkpoint_updated_at ON mill_cdc_checkpoint(updated_at)`)
+	createIndexSQL := fmt.Sprintf(
+		"CREATE INDEX IF NOT EXISTS %s ON %s(updated_at)",
+		checkpointUpdatedAtIndexName,
+		checkpointTableName,
+	)
+	_, _ = db.ExecContext(ctx, createIndexSQL)
 	return nil
 }
 

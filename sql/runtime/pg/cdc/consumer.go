@@ -13,6 +13,7 @@ const (
 	defaultShutdownTimeout = 5 * time.Second
 	defaultRetryBackoff    = time.Second
 	defaultMaxRetryBackoff = 30 * time.Second
+	defaultSlotName        = SlotName("squall_slot")
 )
 
 // ConsumerConfig holds PostgreSQL CDC consumer runtime settings.
@@ -210,7 +211,7 @@ func (c *Consumer) Stop() error {
 // DefaultConsumerConfig returns sensible CDC consumer defaults.
 func DefaultConsumerConfig() ConsumerConfig {
 	return ConsumerConfig{
-		SlotName:           SlotName("mill_slot"),
+		SlotName:           defaultSlotName,
 		StatusInterval:     defaultStatusInterval,
 		BackpressurePolicy: BackpressurePolicyBlock,
 	}

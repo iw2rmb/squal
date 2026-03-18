@@ -30,8 +30,8 @@ func TestEnsureCheckpointTable(t *testing.T) {
 			name:      "creates table and index",
 			callCount: 1,
 			setupMock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectExec("CREATE TABLE IF NOT EXISTS mill_cdc_checkpoint").WillReturnResult(sqlmock.NewResult(0, 0))
-				mock.ExpectExec("CREATE INDEX IF NOT EXISTS idx_mill_cdc_checkpoint_updated_at").WillReturnResult(sqlmock.NewResult(0, 0))
+				mock.ExpectExec("CREATE TABLE IF NOT EXISTS squall_cdc_checkpoint").WillReturnResult(sqlmock.NewResult(0, 0))
+				mock.ExpectExec("CREATE INDEX IF NOT EXISTS idx_squall_cdc_checkpoint_updated_at").WillReturnResult(sqlmock.NewResult(0, 0))
 			},
 		},
 		{
@@ -39,8 +39,8 @@ func TestEnsureCheckpointTable(t *testing.T) {
 			callCount: 2,
 			setupMock: func(mock sqlmock.Sqlmock) {
 				for i := 0; i < 2; i++ {
-					mock.ExpectExec("CREATE TABLE IF NOT EXISTS mill_cdc_checkpoint").WillReturnResult(sqlmock.NewResult(0, 0))
-					mock.ExpectExec("CREATE INDEX IF NOT EXISTS idx_mill_cdc_checkpoint_updated_at").WillReturnResult(sqlmock.NewResult(0, 0))
+					mock.ExpectExec("CREATE TABLE IF NOT EXISTS squall_cdc_checkpoint").WillReturnResult(sqlmock.NewResult(0, 0))
+					mock.ExpectExec("CREATE INDEX IF NOT EXISTS idx_squall_cdc_checkpoint_updated_at").WillReturnResult(sqlmock.NewResult(0, 0))
 				}
 			},
 		},
@@ -117,7 +117,7 @@ func TestLoadLSN(t *testing.T) {
 			name:     "no checkpoint row",
 			slotName: "slot_a",
 			setupMock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery("SELECT last_lsn FROM mill_cdc_checkpoint WHERE slot_name = \\$1").
+				mock.ExpectQuery("SELECT last_lsn FROM squall_cdc_checkpoint WHERE slot_name = \\$1").
 					WithArgs("slot_a").
 					WillReturnRows(sqlmock.NewRows([]string{"last_lsn"}))
 			},
@@ -127,7 +127,7 @@ func TestLoadLSN(t *testing.T) {
 			name:     "checkpoint row exists",
 			slotName: "slot_a",
 			setupMock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery("SELECT last_lsn FROM mill_cdc_checkpoint WHERE slot_name = \\$1").
+				mock.ExpectQuery("SELECT last_lsn FROM squall_cdc_checkpoint WHERE slot_name = \\$1").
 					WithArgs("slot_a").
 					WillReturnRows(sqlmock.NewRows([]string{"last_lsn"}).AddRow("0/100"))
 			},
@@ -218,10 +218,10 @@ func TestSaveLSN(t *testing.T) {
 			slotName: "slot_a",
 			lsn:      "0/100",
 			setupMock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery("SELECT last_lsn FROM mill_cdc_checkpoint WHERE slot_name = \\$1").
+				mock.ExpectQuery("SELECT last_lsn FROM squall_cdc_checkpoint WHERE slot_name = \\$1").
 					WithArgs("slot_a").
 					WillReturnRows(sqlmock.NewRows([]string{"last_lsn"}))
-				mock.ExpectExec("INSERT INTO mill_cdc_checkpoint").
+				mock.ExpectExec("INSERT INTO squall_cdc_checkpoint").
 					WithArgs("slot_a", "0/100").
 					WillReturnResult(sqlmock.NewResult(1, 1))
 			},
@@ -231,10 +231,10 @@ func TestSaveLSN(t *testing.T) {
 			slotName: "slot_a",
 			lsn:      "0/200",
 			setupMock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery("SELECT last_lsn FROM mill_cdc_checkpoint WHERE slot_name = \\$1").
+				mock.ExpectQuery("SELECT last_lsn FROM squall_cdc_checkpoint WHERE slot_name = \\$1").
 					WithArgs("slot_a").
 					WillReturnRows(sqlmock.NewRows([]string{"last_lsn"}).AddRow("0/100"))
-				mock.ExpectExec("INSERT INTO mill_cdc_checkpoint").
+				mock.ExpectExec("INSERT INTO squall_cdc_checkpoint").
 					WithArgs("slot_a", "0/200").
 					WillReturnResult(sqlmock.NewResult(1, 1))
 			},
@@ -244,10 +244,10 @@ func TestSaveLSN(t *testing.T) {
 			slotName: "slot_a",
 			lsn:      "0/200",
 			setupMock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery("SELECT last_lsn FROM mill_cdc_checkpoint WHERE slot_name = \\$1").
+				mock.ExpectQuery("SELECT last_lsn FROM squall_cdc_checkpoint WHERE slot_name = \\$1").
 					WithArgs("slot_a").
 					WillReturnRows(sqlmock.NewRows([]string{"last_lsn"}).AddRow("0/200"))
-				mock.ExpectExec("INSERT INTO mill_cdc_checkpoint").
+				mock.ExpectExec("INSERT INTO squall_cdc_checkpoint").
 					WithArgs("slot_a", "0/200").
 					WillReturnResult(sqlmock.NewResult(1, 1))
 			},
@@ -259,7 +259,7 @@ func TestSaveLSN(t *testing.T) {
 			wantErr:     true,
 			errContains: "monotonicity check failed",
 			setupMock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery("SELECT last_lsn FROM mill_cdc_checkpoint WHERE slot_name = \\$1").
+				mock.ExpectQuery("SELECT last_lsn FROM squall_cdc_checkpoint WHERE slot_name = \\$1").
 					WithArgs("slot_a").
 					WillReturnRows(sqlmock.NewRows([]string{"last_lsn"}).AddRow("0/200"))
 			},
@@ -271,7 +271,7 @@ func TestSaveLSN(t *testing.T) {
 			wantErr:     true,
 			errContains: "invalid LSN comparison",
 			setupMock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery("SELECT last_lsn FROM mill_cdc_checkpoint WHERE slot_name = \\$1").
+				mock.ExpectQuery("SELECT last_lsn FROM squall_cdc_checkpoint WHERE slot_name = \\$1").
 					WithArgs("slot_a").
 					WillReturnRows(sqlmock.NewRows([]string{"last_lsn"}).AddRow("not-an-lsn"))
 			},
@@ -338,10 +338,10 @@ func TestCheckpointManager(t *testing.T) {
 		}
 		defer db.Close()
 
-		mock.ExpectQuery("SELECT last_lsn FROM mill_cdc_checkpoint WHERE slot_name = \\$1").
+		mock.ExpectQuery("SELECT last_lsn FROM squall_cdc_checkpoint WHERE slot_name = \\$1").
 			WithArgs("slot_a").
 			WillReturnRows(sqlmock.NewRows([]string{"last_lsn"}))
-		mock.ExpectExec("INSERT INTO mill_cdc_checkpoint").
+		mock.ExpectExec("INSERT INTO squall_cdc_checkpoint").
 			WithArgs("slot_a", "0/100").
 			WillReturnResult(sqlmock.NewResult(1, 1))
 
