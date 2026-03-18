@@ -58,7 +58,7 @@ Legend: [ ] todo, [x] done.
     2. Run `go test ./...`.
   - Reasoning: high
 
-- [ ] 2.1.b Extract publication/probe/checkpoint primitives into Squall first
+- [x] 2.1.b Extract publication/probe/checkpoint primitives into Squall first
   - Repository: `squall`
     1. Implement publication management in `sql/runtime/pg/cdc` for `pubExists`, `createPublication`, `addTables`, and `ListPublicationTables`.
     2. Implement probe and checkpoint table/save/load logic in `sql/runtime/pg/cdc`.
