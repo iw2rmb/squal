@@ -102,20 +102,34 @@ func TestAffectedQueries_IncludeTransitiveDependents(t *testing.T) {
 	}
 }
 
+func TestQueryGraph_ExtractTables_MultipleJoins(t *testing.T) {
+	t.Parallel()
+
+	g := NewQueryGraphWithParser(&mockParser{})
+	tables := g.extractTables("SELECT * FROM a JOIN b ON a.id=b.id JOIN c ON c.id=b.id")
+	if !sameElements(tables, []string{"a", "b", "c"}) {
+		t.Fatalf("unexpected tables from join fallback parser: %+v", tables)
+	}
+}
+
 func sameIDs(got []QueryID, want []QueryID) bool {
+	return sameElements(got, want)
+}
+
+func sameElements[T comparable](got []T, want []T) bool {
 	if len(got) != len(want) {
 		return false
 	}
-	set := make(map[QueryID]int, len(got))
-	for _, id := range got {
-		set[id]++
+	set := make(map[T]int, len(got))
+	for _, v := range got {
+		set[v]++
 	}
-	for _, id := range want {
-		count := set[id]
+	for _, v := range want {
+		count := set[v]
 		if count == 0 {
 			return false
 		}
-		set[id] = count - 1
+		set[v] = count - 1
 	}
 	for _, count := range set {
 		if count != 0 {

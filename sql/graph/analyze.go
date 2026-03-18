@@ -209,14 +209,14 @@ func (g *QueryGraph) extractTables(sql string) []string {
 
 	joinPattern := []string{"join ", "inner join ", "left join ", "right join "}
 	for _, pattern := range joinPattern {
-		idx := 0
+		searchStart := 0
 		for {
-			idx = strings.Index(sql[idx:], pattern)
-			if idx == -1 {
+			relIdx := strings.Index(sql[searchStart:], pattern)
+			if relIdx == -1 {
 				break
 			}
-			idx += len(pattern)
-			remaining := sql[idx:]
+			joinTableStart := searchStart + relIdx + len(pattern)
+			remaining := sql[joinTableStart:]
 			endIdx := strings.IndexAny(remaining, " on using")
 			if endIdx > 0 {
 				table := strings.TrimSpace(remaining[:endIdx])
@@ -225,6 +225,7 @@ func (g *QueryGraph) extractTables(sql string) []string {
 				}
 				tables = append(tables, table)
 			}
+			searchStart = joinTableStart
 		}
 	}
 
