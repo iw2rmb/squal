@@ -49,5 +49,5 @@ CDC defaults are Squall-owned and host-neutral:
 
 ## Boundary Enforcement
 
-- `scripts/check_no_mill_internal.sh` enforces that extracted shared modules do not import `mill/internal`.
-- Import-boundary tests under `sql/**/import_boundary_test.go` enforce package-level dependency boundaries.
+- Repository checks enforce that extracted shared modules do not import `mill/internal`.
+- Import-boundary tests in shared SQL modules enforce package-level dependency boundaries.
