@@ -138,7 +138,7 @@ Legend: [ ] todo, [x] done.
     2. Run `go test ./...`.
   - Reasoning: high
 
-- [ ] 3.3 Extract query router and metrics aggregator package to Squall reuse module
+- [x] 3.3 Extract query router and metrics aggregator package to Squall reuse module
   - Repository: `squall`
     1. Implement `sql/reuse/routing` from Mill routing package with preserved decision rules and complexity scoring.
     2. Keep routing package parser-based and detached from any host cache manager internals.
