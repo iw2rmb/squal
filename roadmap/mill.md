@@ -74,7 +74,7 @@ Legend: [ ] todo, [x] done.
     2. Run `go test ./...`.
   - Reasoning: high
 
-- [ ] 2.1.c Extract CDC consumer loop with callback-based integration
+- [x] 2.1.c Extract CDC consumer loop with callback-based integration
   - Repository: `squall`
     1. Implement consumer start/stop/retry/backoff/backpressure logic in `sql/runtime/pg/cdc` without Mill-specific dependencies.
     2. Expose consumer constructor accepting batch callback interface for host-side processing.

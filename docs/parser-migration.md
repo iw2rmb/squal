@@ -28,6 +28,7 @@
 
 - `sql/runtime/pg` defines provider/runtime contracts.
 - `sql/runtime/pg/cdc` freezes CDC contracts (`LSN`, `TxEvent`, `TxBatch`, `EventHandler`, `CheckpointLoader`/`CheckpointSaver`/`CheckpointStore`, dispatcher sequencing): Squall owns replication/publication/checkpoint runtime contracts, while host applications own domain batch handling.
+- `sql/runtime/pg/cdc` now includes consumer runtime extraction (`NewConsumer`, start/stop loop, retry/backoff classification, backpressure policy handling, status heartbeat, callback-based batch dispatch with checkpoint/ack sequencing).
 - `sql/reuse` defines host-facing decomposition/compiler/router contracts.
 - `sql/graph` defines parser-injected graph contracts for host integration.
 - `scripts/check_no_mill_internal.sh` now scans extracted packages (`core`, `parser`, `parserpg`, `sql/runtime/pg`, `sql/runtime/pg/cdc`, `sql/reuse`, `sql/graph`) for forbidden `mill/internal` references.

@@ -49,6 +49,14 @@ func (e *probeLogEvent) Msg(msg string) {
 	e.logger.mu.Unlock()
 }
 
+func (l *probeLogger) Events() []string {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	out := make([]string, len(l.msgs))
+	copy(out, l.msgs)
+	return out
+}
+
 func TestProbe(t *testing.T) {
 	t.Parallel()
 

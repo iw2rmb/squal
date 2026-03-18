@@ -34,6 +34,11 @@ func (m *CheckpointManager) SaveCheckpoint(ctx context.Context, slotName SlotNam
 	return SaveLSN(ctx, m.db, slotName, lsn)
 }
 
+// LoadCheckpoint reads the last persisted checkpoint for a slot.
+func (m *CheckpointManager) LoadCheckpoint(ctx context.Context, slotName SlotName) (LSN, error) {
+	return LoadLSN(ctx, m.db, slotName)
+}
+
 // AckLSN sends replication ack through configured Acker (best-effort no-op when nil).
 func (m *CheckpointManager) AckLSN(ctx context.Context, lsn LSN) error {
 	if m.acker == nil {
