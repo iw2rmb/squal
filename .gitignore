@@ -30,3 +30,6 @@ vendor/
 *.swp
 *.swo
 *~
+
+# amata
+.amata/
