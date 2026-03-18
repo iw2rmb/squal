@@ -122,7 +122,7 @@ Legend: [ ] todo, [x] done.
     2. Run `go test ./...`.
   - Reasoning: high
 
-- [ ] 3.2 Extract query compiler and matcher package to Squall reuse module
+- [x] 3.2 Extract query compiler and matcher package to Squall reuse module
   - Repository: `squall`
     1. Implement `sql/reuse/compiler` from Mill compiler package with preserved component signatures and threshold behavior.
     2. Keep storage interface and plan-generation contracts independent from persistence backend.
