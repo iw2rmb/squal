@@ -54,10 +54,32 @@ type BatchHandler interface {
 	HandleBatch(ctx context.Context, batch TxBatch) error
 }
 
+// BatchHandlerFunc adapts a callback function to BatchHandler.
+type BatchHandlerFunc func(ctx context.Context, batch TxBatch) error
+
+// HandleBatch applies a batch through the callback.
+func (fn BatchHandlerFunc) HandleBatch(ctx context.Context, batch TxBatch) error {
+	return fn(ctx, batch)
+}
+
+// EventHandler is the host callback contract used by CDC consumer loops.
+type EventHandler = BatchHandlerFunc
+
+// CheckpointLoader reads the last persisted checkpoint position for a slot.
+type CheckpointLoader interface {
+	LoadCheckpoint(ctx context.Context, slotName SlotName) (LSN, error)
+}
+
 // CheckpointSaver persists and acknowledges successfully applied batch positions.
 type CheckpointSaver interface {
 	SaveCheckpoint(ctx context.Context, slotName SlotName, lsn LSN) error
 	AckLSN(ctx context.Context, lsn LSN) error
+}
+
+// CheckpointStore combines checkpoint read/write contracts.
+type CheckpointStore interface {
+	CheckpointLoader
+	CheckpointSaver
 }
 
 // Dispatcher defines checkpoint-aware delivery sequencing.

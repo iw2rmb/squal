@@ -43,7 +43,7 @@ Legend: [ ] todo, [x] done.
     2. Run `CGO_ENABLED=1 go test ./...`.
   - Reasoning: high
 
-- [ ] 2.1.a Freeze CDC contracts and ownership boundary before extraction
+- [x] 2.1.a Freeze CDC contracts and ownership boundary before extraction
   - Repository: `squall`
     1. Define Squall-owned CDC contracts for `LSN`, `TxEvent`, `TxBatch`, checkpoint save/load, and consumer batch handler callback.
     2. Define ownership boundary in package docs: Squall owns replication/publication/checkpoint runtime, host app owns domain batch handling.
