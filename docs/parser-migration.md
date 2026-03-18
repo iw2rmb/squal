@@ -3,6 +3,7 @@
 Related:
 - `../design/squalld.md`
 - `../research/sql.md`
+- `../roadmap/mill.md`
 
 Note:
 - Historical design/roadmap files removed in cleanup commit `f482e2e` are superseded by active constraints tracked in `../design/squalld.md`.
@@ -30,3 +31,10 @@ Note:
 
 - Integrate `cmd/aster-adapter-sql` completion forwarding and edit-plan application in `aster` using `sql/complete`.
 - Integrate `cow` completion stack with shared SQL modules and fallback policy from `sql/complete`.
+
+## Extraction Contracts Baseline (Roadmap 1.1)
+
+- `sql/runtime/pg` defines provider/runtime contracts and the `sql/runtime/pg/cdc` batch-delivery contracts (`LSN`, `TxEvent`, `TxBatch`, checkpoint interfaces).
+- `sql/reuse` defines host-facing decomposition/compiler/router contracts.
+- `sql/graph` defines parser-injected graph contracts for host integration.
+- `scripts/check_no_mill_internal.sh` now scans extracted packages (`core`, `parser`, `parserpg`, `sql/runtime/pg`, `sql/runtime/pg/cdc`, `sql/reuse`, `sql/graph`) for forbidden `mill/internal` references.

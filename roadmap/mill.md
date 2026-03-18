@@ -12,7 +12,7 @@ Legend: [ ] todo, [x] done.
 - Squall must not depend on `mill/internal` in extracted packages.
 - Mill remains owner of IMV-specific engine semantics and runtime orchestration.
 
-- [ ] 1.1 Define extraction contracts and import boundaries for tracks 1..4
+- [x] 1.1 Define extraction contracts and import boundaries for tracks 1..4
   - Repository: `squall`
     1. Define public contracts for parser runtime, CDC batch delivery, reuse modules, and graph integration consumed by Mill.
     2. Add package-level import boundary checks for extracted packages to block `mill/internal` dependencies.
