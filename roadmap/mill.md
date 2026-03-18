@@ -153,7 +153,7 @@ Legend: [ ] todo, [x] done.
     2. Run `go test ./...`.
   - Reasoning: medium
 
-- [ ] 4.1 Extract query dependency graph package to Squall graph module
+- [x] 4.1 Extract query dependency graph package to Squall graph module
   - Repository: `squall`
     1. Implement `sql/graph` from Mill graph package with parser injection and table/fingerprint indexing behavior preserved.
     2. Replace Mill-specific `QueryID`/`SQLText`/`TableName` types with Squall-neutral graph identifiers.

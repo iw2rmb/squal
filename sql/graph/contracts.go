@@ -25,8 +25,8 @@ type QueryNode struct {
 	Metadata     *parser.QueryMetadata `json:"metadata,omitempty"`
 }
 
-// QueryGraph defines parser-injected graph behavior consumed by host runtimes.
-type QueryGraph interface {
+// Graph defines parser-injected graph behavior consumed by host runtimes.
+type Graph interface {
 	GetParser() parser.Parser
 	AddQuery(id QueryID, sql SQLText) (*QueryNode, error)
 	RemoveQuery(id QueryID)
@@ -34,11 +34,10 @@ type QueryGraph interface {
 	GetDependencyChain(id QueryID) []QueryID
 	FindAffectedQueries(table TableName, operation string) []QueryID
 	FindQueriesByTable(table TableName) []QueryID
-}
-
-// Builder defines parser-injected graph construction.
-//
-// Implementations must require parser injection and avoid hidden global parser state.
-type Builder interface {
-	NewQueryGraphWithParser(p parser.Parser) QueryGraph
+	FindDependencies(sql string) []QueryID
+	CanReuse(cachedID QueryID, newSQL string) bool
+	FindReusableCachedQueries(targetSQL string) []ReusableQuery
+	BuildDependencyChain(targetSQL string) *DependencyChain
+	Stats() map[string]interface{}
+	Visualize() string
 }
