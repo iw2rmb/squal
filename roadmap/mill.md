@@ -27,7 +27,7 @@ Legend: [ ] todo, [x] done.
     2. Run `go test ./...`.
   - Reasoning: high
 
-- [ ] 1.2 Migrate Mill parser compatibility behavior into Squall parser packages
+- [x] 1.2 Migrate Mill parser compatibility behavior into Squall parser packages
   - Repository: `squall`
     1. Move parser compatibility behavior from Mill parser adapters into `parserpg` as parser output normalization hooks.
     2. Consolidate interval parser behavior in `parser/interval_parser.go` as the single canonical implementation.

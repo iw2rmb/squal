@@ -38,7 +38,7 @@ func (p *PGQueryParser) ExtractJSONPaths(sql string) ([]parser.JSONPath, error) 
 	if err != nil {
 		return nil, err
 	}
-	return paths, nil
+	return normalizeJSONPaths(sql, paths), nil
 }
 
 func (p *PGQueryParser) extractJSONPathsFromNode(node *pg_query.Node, tableName string, paths *[]parser.JSONPath) {

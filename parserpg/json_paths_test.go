@@ -4,6 +4,7 @@
 package parserpg
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/iw2rmb/squal/parser"
@@ -42,6 +43,69 @@ func TestPGQueryParser_ExtractJSONPaths(t *testing.T) {
 			}
 			if len(got) != len(tt.want) {
 				t.Fatalf("got %d want %d\nGot:%+v\nWant:%+v", len(got), len(tt.want), got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPGQueryParser_ExtractJSONPaths_CompatibilityNormalization(t *testing.T) {
+	p := newCGOParser(t)
+
+	tests := []struct {
+		name string
+		sql  string
+		want parser.JSONPath
+	}{
+		{
+			name: "arrow chain includes terminal text segment",
+			sql:  "SELECT profile->'settings'->>'theme' FROM users",
+			want: parser.JSONPath{
+				Table:    "users",
+				Column:   "profile",
+				Path:     []string{"settings", "theme"},
+				Operator: "->>",
+				IsText:   true,
+			},
+		},
+		{
+			name: "hash path list is expanded",
+			sql:  "SELECT profile #>> '{settings,theme}' FROM users",
+			want: parser.JSONPath{
+				Table:    "users",
+				Column:   "profile",
+				Path:     []string{"settings", "theme"},
+				Operator: "#>>",
+				IsText:   true,
+			},
+		},
+		{
+			name: "where clause arrow chain is normalized",
+			sql:  "SELECT * FROM users WHERE profile->'settings'->>'theme' = 'dark'",
+			want: parser.JSONPath{
+				Table:    "users",
+				Column:   "profile",
+				Path:     []string{"settings", "theme"},
+				Operator: "->>",
+				IsText:   true,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := p.ExtractJSONPaths(tt.sql)
+			if err != nil {
+				t.Fatalf("ExtractJSONPaths() error = %v", err)
+			}
+			found := false
+			for _, path := range got {
+				if reflect.DeepEqual(path, tt.want) {
+					found = true
+					break
+				}
+			}
+			if !found {
+				t.Fatalf("expected normalized path %+v in %v", tt.want, got)
 			}
 		})
 	}

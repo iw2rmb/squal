@@ -137,7 +137,7 @@ func (p *PGQueryParser) ExtractMetadata(sql string) (*parser.QueryMetadata, erro
 		}
 	}
 
-	return metadata, nil
+	return p.normalizeMetadataCompatibility(sql, metadata), nil
 }
 
 // extractSelectColumn extracts column metadata from a SELECT target (ResTarget node).
@@ -424,4 +424,3 @@ func (p *PGQueryParser) extractWhereFilters(node *pg_query.Node, metadata *parse
 		return
 	}
 }
-

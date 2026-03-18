@@ -183,6 +183,46 @@ func TestPGQueryParser_ExtractMetadata_IsAggregate(t *testing.T) {
 	}
 }
 
+func TestPGQueryParser_ExtractMetadata_ComposedAggregateCompatibility(t *testing.T) {
+	p := newCGOParser(t)
+	sql := "SELECT SUM(CASE WHEN ok THEN amount ELSE 0 END)-SUM(CASE WHEN NOT ok THEN amount ELSE 0 END) AS net FROM events"
+
+	md, err := p.ExtractMetadata(sql)
+	if err != nil {
+		t.Fatalf("ExtractMetadata failed: %v", err)
+	}
+	if !md.IsAggregate {
+		t.Fatalf("IsAggregate=%v want true for composed aggregate query", md.IsAggregate)
+	}
+}
+
+func TestPGQueryParser_ExtractMetadata_OperationCompatibility(t *testing.T) {
+	p := newCGOParser(t)
+	tests := []struct {
+		name string
+		sql  string
+		want string
+	}{
+		{name: "SELECT", sql: "SELECT id FROM users", want: "SELECT"},
+		{name: "WITH", sql: "WITH q AS (SELECT id FROM users) SELECT * FROM q", want: "SELECT"},
+		{name: "INSERT", sql: "INSERT INTO users (id, name) VALUES (1, 'alice')", want: "INSERT"},
+		{name: "UPDATE", sql: "UPDATE users SET name = 'bob' WHERE id = 1", want: "UPDATE"},
+		{name: "DELETE", sql: "DELETE FROM users WHERE id = 1", want: "DELETE"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			md, err := p.ExtractMetadata(tt.sql)
+			if err != nil {
+				t.Fatalf("ExtractMetadata failed: %v", err)
+			}
+			if len(md.Operations) != 1 || md.Operations[0] != tt.want {
+				t.Fatalf("Operations=%v want [%s]", md.Operations, tt.want)
+			}
+		})
+	}
+}
+
 func TestPGQueryParser_ExtractMetadata_SelectColumns(t *testing.T) {
 	p := newCGOParser(t)
 	tests := []struct {
