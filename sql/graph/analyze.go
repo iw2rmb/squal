@@ -2,6 +2,7 @@ package graph
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/iw2rmb/squal/parser"
@@ -12,12 +13,9 @@ func (g *QueryGraph) FindDependencies(sql string) []QueryID {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
-	tables, err := g.parser.ExtractTables(sql)
-	if err != nil {
-		tables = g.extractTables(sql)
-	}
+	targetMetadata, tables := g.extractTargetProfile(sql)
 
-	return g.findPotentialDependencies(sql, tables)
+	return g.findPotentialDependencies(tables, targetMetadata)
 }
 
 // CanReuse checks if a cached query can be reused as a subquery.
@@ -30,28 +28,8 @@ func (g *QueryGraph) CanReuse(cachedID QueryID, newSQL string) bool {
 		return false
 	}
 
-	if cachedNode.Metadata != nil {
-		_, err := g.parser.ExtractMetadata(newSQL)
-		if err == nil {
-			// Fall through to basic analysis.
-		}
-	}
-
-	newTables := g.extractTables(newSQL)
-	for _, table := range cachedNode.Tables {
-		found := false
-		for _, newTable := range newTables {
-			if strings.EqualFold(string(table), newTable) {
-				found = true
-				break
-			}
-		}
-		if !found {
-			return false
-		}
-	}
-
-	return true
+	targetMetadata, targetTables := g.extractTargetProfile(newSQL)
+	return g.couldBeSubquery(cachedNode, targetTables, targetMetadata)
 }
 
 // FindReusableCachedQueries finds all cached queries that can potentially be reused.
@@ -59,29 +37,32 @@ func (g *QueryGraph) FindReusableCachedQueries(targetSQL string) []ReusableQuery
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
-	_, err := g.parser.ExtractMetadata(targetSQL)
-	if err != nil {
+	targetMetadata, targetTables := g.extractTargetProfile(targetSQL)
+	if len(targetTables) == 0 {
 		return []ReusableQuery{}
 	}
 
 	reusable := []ReusableQuery{}
 
 	for _, node := range g.nodes {
-		if node.Metadata == nil {
+		if !g.couldBeSubquery(node, targetTables, targetMetadata) {
 			continue
 		}
 
-		// Basic compatibility checking - removed legacy parser-specific logic.
-		_ = node
+		reusable = append(reusable, ReusableQuery{
+			ID:         node.ID,
+			SQL:        node.SQL,
+			Confidence: g.reuseConfidence(node, targetMetadata),
+			Metadata:   node.Metadata,
+		})
 	}
 
-	for i := 0; i < len(reusable)-1; i++ {
-		for j := 0; j < len(reusable)-i-1; j++ {
-			if reusable[j].Confidence < reusable[j+1].Confidence {
-				reusable[j], reusable[j+1] = reusable[j+1], reusable[j]
-			}
+	sort.Slice(reusable, func(i, j int) bool {
+		if reusable[i].Confidence == reusable[j].Confidence {
+			return reusable[i].ID < reusable[j].ID
 		}
-	}
+		return reusable[i].Confidence > reusable[j].Confidence
+	})
 
 	return reusable
 }
@@ -96,9 +77,6 @@ type ReusableQuery struct {
 
 // BuildDependencyChain builds a complete dependency chain for optimal execution.
 func (g *QueryGraph) BuildDependencyChain(targetSQL string) *DependencyChain {
-	g.mu.RLock()
-	defer g.mu.RUnlock()
-
 	chain := &DependencyChain{
 		TargetSQL: targetSQL,
 		Steps:     []DependencyStep{},
@@ -232,30 +210,32 @@ func (g *QueryGraph) extractTables(sql string) []string {
 	return tables
 }
 
-func (g *QueryGraph) findPotentialDependencies(sql string, tables []string) []QueryID {
+func (g *QueryGraph) findPotentialDependencies(tables []string, targetMetadata *parser.QueryMetadata) []QueryID {
 	deps := []QueryID{}
 
 	for id, node := range g.nodes {
-		if g.couldBeSubquery(node, sql, tables) {
+		if g.couldBeSubquery(node, tables, targetMetadata) {
 			deps = append(deps, id)
 		}
 	}
 
+	sort.Slice(deps, func(i, j int) bool {
+		return deps[i] < deps[j]
+	})
+
 	return deps
 }
 
-func (g *QueryGraph) couldBeSubquery(node *QueryNode, sql string, tables []string) bool {
-	if node.Metadata == nil {
-		return g.basicCouldBeSubquery(node, tables)
-	}
-
-	_, err := g.parser.ExtractMetadata(sql)
-	if err != nil {
+func (g *QueryGraph) couldBeSubquery(node *QueryNode, tables []string, targetMetadata *parser.QueryMetadata) bool {
+	if !g.basicCouldBeSubquery(node, tables) {
 		return false
 	}
 
-	// Basic compatibility checking - removed legacy parser-specific logic.
-	return false
+	if node.Metadata == nil || targetMetadata == nil {
+		return true
+	}
+
+	return operationsCompatible(node.Metadata, targetMetadata)
 }
 
 // basicCouldBeSubquery provides fallback logic when metadata is unavailable.
@@ -274,6 +254,52 @@ func (g *QueryGraph) basicCouldBeSubquery(node *QueryNode, tables []string) bool
 	}
 
 	return len(node.Tables) > 0 && len(node.Tables) <= len(tables)
+}
+
+func (g *QueryGraph) extractTargetProfile(sql string) (*parser.QueryMetadata, []string) {
+	metadata, err := g.parser.ExtractMetadata(sql)
+	if err == nil && metadata != nil && len(metadata.Tables) > 0 {
+		return metadata, metadata.Tables
+	}
+
+	tables, err := g.parser.ExtractTables(sql)
+	if err != nil || len(tables) == 0 {
+		tables = g.extractTables(sql)
+	}
+
+	if metadata != nil && len(metadata.Tables) == 0 {
+		metadata.Tables = tables
+	}
+
+	return metadata, tables
+}
+
+func (g *QueryGraph) reuseConfidence(node *QueryNode, targetMetadata *parser.QueryMetadata) float64 {
+	confidence := 0.7
+	if node.Metadata == nil || targetMetadata == nil {
+		return confidence
+	}
+
+	if operationsCompatible(node.Metadata, targetMetadata) {
+		confidence += 0.2
+	}
+	if node.Metadata.IsAggregate == targetMetadata.IsAggregate {
+		confidence += 0.1
+	}
+	if confidence > 1.0 {
+		confidence = 1.0
+	}
+	return confidence
+}
+
+func operationsCompatible(left, right *parser.QueryMetadata) bool {
+	if left == nil || right == nil {
+		return true
+	}
+	if len(left.Operations) == 0 || len(right.Operations) == 0 {
+		return true
+	}
+	return strings.EqualFold(left.Operations[0], right.Operations[0])
 }
 
 // Visualize returns a DOT graph representation.

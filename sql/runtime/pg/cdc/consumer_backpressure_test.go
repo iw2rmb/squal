@@ -36,7 +36,7 @@ func TestConsumer_BackpressurePolicies(t *testing.T) {
 			batchSize:   2,
 			maxBatch:    2,
 			wantInclude: true,
-			wantLog:     "Merge policy not fully implemented, blocking",
+			wantLog:     "Merge policy degrades to block for streaming batches",
 		},
 		{
 			name:        "unknown defaults to block",

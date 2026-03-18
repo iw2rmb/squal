@@ -52,6 +52,37 @@ func TestQueryGraph_AddRemoveQueryAndTableIndex(t *testing.T) {
 	}
 }
 
+func TestQueryGraph_AddQueryLinksDependencies(t *testing.T) {
+	t.Parallel()
+
+	g := NewQueryGraphWithParser(&mockParser{})
+
+	if _, err := g.AddQuery(QueryID("base"), SQLText("SELECT id FROM users")); err != nil {
+		t.Fatalf("AddQuery(base) failed: %v", err)
+	}
+	dependent, err := g.AddQuery(QueryID("dependent"), SQLText("SELECT id FROM users WHERE active = true"))
+	if err != nil {
+		t.Fatalf("AddQuery(dependent) failed: %v", err)
+	}
+
+	if !slices.Contains(dependent.Dependencies, QueryID("base")) {
+		t.Fatalf("dependent dependencies = %+v, want to include base", dependent.Dependencies)
+	}
+
+	base := g.GetNode(QueryID("base"))
+	if base == nil {
+		t.Fatal("base node is nil")
+	}
+	if !slices.Contains(base.Dependents, QueryID("dependent")) {
+		t.Fatalf("base dependents = %+v, want to include dependent", base.Dependents)
+	}
+
+	deps := g.FindDependencies("SELECT email FROM users WHERE active = true")
+	if !slices.Contains(deps, QueryID("base")) {
+		t.Fatalf("FindDependencies returned %+v, want to include base", deps)
+	}
+}
+
 func TestQueryGraph_GetDependencyChain_DepthFirstDeduplicated(t *testing.T) {
 	t.Parallel()
 

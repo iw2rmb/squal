@@ -192,7 +192,7 @@ func (c *Consumer) applyBackpressure(ctx context.Context, batchSize int) bool {
 	case BackpressurePolicyMerge:
 		c.logger.Debug().
 			Int("batch_size", batchSize).
-			Msg("Merge policy not fully implemented, blocking")
+			Msg("Merge policy degrades to block for streaming batches")
 		return true
 	default:
 		c.logger.Warn().

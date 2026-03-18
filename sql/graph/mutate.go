@@ -25,7 +25,7 @@ func (g *QueryGraph) AddQuery(id QueryID, sql SQLText) (*QueryNode, error) {
 		tables[i] = TableName(t)
 	}
 
-	deps := g.findPotentialDependencies(string(sql), metadata.Tables)
+	deps := g.findPotentialDependencies(metadata.Tables, metadata)
 
 	node := &QueryNode{
 		ID:           id,

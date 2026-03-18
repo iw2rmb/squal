@@ -122,8 +122,14 @@ func TestQueryGraph_WithInjectedParser_NoParserPGMethods(t *testing.T) {
 	}
 
 	got := g.FindReusableCachedQueries("SELECT id FROM users")
-	if len(got) != 0 {
-		t.Fatalf("expected no reusable queries without parser-specific scoring, got %d", len(got))
+	if len(got) != 1 {
+		t.Fatalf("expected 1 reusable query, got %d", len(got))
+	}
+	if got[0].ID != QueryID("q1") {
+		t.Fatalf("reusable query ID = %s, want q1", got[0].ID)
+	}
+	if got[0].Confidence <= 0 {
+		t.Fatalf("reusable confidence = %f, want > 0", got[0].Confidence)
 	}
 
 	queries := g.FindQueriesByTable(TableName("users"))
