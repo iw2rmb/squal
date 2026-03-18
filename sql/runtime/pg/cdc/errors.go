@@ -163,14 +163,14 @@ func (c *Consumer) shouldRetry(err error) bool {
 		return false
 	}
 
-	if isFatalError(err) {
-		return false
-	}
 	if isTransientError(err) {
 		return true
 	}
 	if c.config.ReconcileOnError && (isSlotNotFoundError(err) || isPublicationNotFoundError(err)) {
 		return true
+	}
+	if isFatalError(err) {
+		return false
 	}
 
 	return false

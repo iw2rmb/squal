@@ -112,7 +112,11 @@ func TestConsumer_ShouldRetry(t *testing.T) {
 		{name: "fatal errors do not retry", err: &ErrUnsupportedVersion{Have: "90600", Want: ">= 100000"}, wantRetry: false},
 		{name: "slot missing retries only with reconcile", reconcileEnabled: true, err: errors.New("replication slot does not exist"), wantRetry: true},
 		{name: "slot missing no retry without reconcile", reconcileEnabled: false, err: errors.New("replication slot does not exist"), wantRetry: false},
+		{name: "slot missing pg error retries with reconcile", reconcileEnabled: true, err: &pgconn.PgError{Code: "42704", Message: `replication slot "test_slot" does not exist`}, wantRetry: true},
+		{name: "slot missing pg error no retry without reconcile", reconcileEnabled: false, err: &pgconn.PgError{Code: "42704", Message: `replication slot "test_slot" does not exist`}, wantRetry: false},
 		{name: "publication missing retries only with reconcile", reconcileEnabled: true, err: errors.New("publication does not exist"), wantRetry: true},
+		{name: "publication missing pg error retries with reconcile", reconcileEnabled: true, err: &pgconn.PgError{Code: "42704", Message: `publication "test_pub" does not exist`}, wantRetry: true},
+		{name: "publication missing pg error no retry without reconcile", reconcileEnabled: false, err: &pgconn.PgError{Code: "42704", Message: `publication "test_pub" does not exist`}, wantRetry: false},
 		{name: "unknown no retry", err: errors.New("something else"), wantRetry: false},
 	}
 
