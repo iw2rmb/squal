@@ -40,7 +40,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/iw2rmb/squal/parser"
+	"github.com/iw2rmb/squall/parser"
 )
 
 // QueryDecomposer provides the main interface for query decomposition and analysis

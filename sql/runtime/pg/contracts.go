@@ -3,8 +3,8 @@ package pg
 import (
 	"context"
 
-	"github.com/iw2rmb/squal/parser"
-	"github.com/iw2rmb/squal/sql/runtime/pg/cdc"
+	"github.com/iw2rmb/squall/parser"
+	"github.com/iw2rmb/squall/sql/runtime/pg/cdc"
 )
 
 // DatabaseProvider defines database runtime integration consumed by host applications.

@@ -6,7 +6,7 @@ package parserpg
 import (
 	pg_query "github.com/pganalyze/pg_query_go/v6"
 
-	"github.com/iw2rmb/squal/parser"
+	"github.com/iw2rmb/squall/parser"
 )
 
 // DetectSlidingWindow scans WHERE for sliding windows like: column > NOW() - INTERVAL 'X'.

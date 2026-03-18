@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/iw2rmb/squal/core"
-	"github.com/iw2rmb/squal/parser"
+	"github.com/iw2rmb/squall/core"
+	"github.com/iw2rmb/squall/parser"
 )
 
 var updateGolden = flag.Bool("update", false, "update golden fixtures")

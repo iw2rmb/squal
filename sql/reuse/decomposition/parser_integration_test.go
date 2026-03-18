@@ -3,7 +3,7 @@ package decomposition
 import (
 	"testing"
 
-	"github.com/iw2rmb/squal/parser"
+	"github.com/iw2rmb/squall/parser"
 )
 
 // TestParseSQL_WithParser verifies parsing succeeds when a parser is provided.

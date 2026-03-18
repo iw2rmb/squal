@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/iw2rmb/squal/sql/runtime/pg/cdc"
+	"github.com/iw2rmb/squall/sql/runtime/pg/cdc"
 	"github.com/jackc/pglogrepl"
 	"github.com/jackc/pgx/v5/pgconn"
 )

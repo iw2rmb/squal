@@ -19,8 +19,8 @@ func TestImportBoundary(t *testing.T) {
 	}
 
 	allowed := map[string]bool{
-		"github.com/iw2rmb/squal/core":   true,
-		"github.com/iw2rmb/squal/parser": true,
+		"github.com/iw2rmb/squall/core":   true,
+		"github.com/iw2rmb/squall/parser": true,
 	}
 	forbiddenSuffix := "parser" + "pg"
 
@@ -41,7 +41,7 @@ func TestImportBoundary(t *testing.T) {
 				t.Fatalf("unquote import path in %s failed: %v", file, err)
 			}
 
-			if strings.HasPrefix(path, "github.com/iw2rmb/squal/") && !allowed[path] {
+			if strings.HasPrefix(path, "github.com/iw2rmb/squall/") && !allowed[path] {
 				t.Fatalf("%s imports forbidden sql package %q", file, path)
 			}
 			if strings.HasSuffix(path, "/"+forbiddenSuffix) || path == forbiddenSuffix {

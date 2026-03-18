@@ -1,6 +1,6 @@
 package graph
 
-import "github.com/iw2rmb/squal/parser"
+import "github.com/iw2rmb/squall/parser"
 
 // QueryID identifies a query node in the dependency graph.
 type QueryID string

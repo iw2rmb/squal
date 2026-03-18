@@ -3,4 +3,4 @@
 
 package decomposition
 
-import _ "github.com/iw2rmb/squal/parserpg"
+import _ "github.com/iw2rmb/squall/parserpg"

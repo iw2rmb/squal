@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/iw2rmb/squal/core"
+	"github.com/iw2rmb/squall/core"
 )
 
 type catalogTableEntry struct {

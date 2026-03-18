@@ -19,7 +19,7 @@ func TestSubqueryExtractorDocsMentionHeuristicsAndLimitations(t *testing.T) {
 	if !ok {
 		t.Fatalf("package decomposition not found")
 	}
-	dp := doc.New(p, "github.com/iw2rmb/squal/sql/reuse/decomposition", 0)
+	dp := doc.New(p, "github.com/iw2rmb/squall/sql/reuse/decomposition", 0)
 	docText := strings.ToLower(dp.Doc)
 
 	// Key phrases that must appear in the package docs after adding the file intro.

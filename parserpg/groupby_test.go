@@ -6,7 +6,7 @@ package parserpg
 import (
 	"testing"
 
-	"github.com/iw2rmb/squal/parser"
+	"github.com/iw2rmb/squall/parser"
 )
 
 func TestPGQueryParser_ExtractGroupBy(t *testing.T) {

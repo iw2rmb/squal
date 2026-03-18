@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/iw2rmb/squal/sql/runtime/pg/cdc"
+	"github.com/iw2rmb/squall/sql/runtime/pg/cdc"
 )
 
 // Export is a replication-exported PostgreSQL snapshot descriptor.

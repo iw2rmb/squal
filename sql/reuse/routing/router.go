@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/iw2rmb/squal/parser"
+	"github.com/iw2rmb/squall/parser"
 )
 
 // ExecutionStrategy defines how a query should be executed.

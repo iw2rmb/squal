@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iw2rmb/squal/parser"
+	"github.com/iw2rmb/squall/parser"
 )
 
 // TestDetectSlidingWindow tests the DetectSlidingWindow function with various SQL patterns.

@@ -9,7 +9,7 @@ import (
 
 	pg_query "github.com/pganalyze/pg_query_go/v6"
 
-	"github.com/iw2rmb/squal/parser"
+	"github.com/iw2rmb/squall/parser"
 )
 
 // ExtractCaseAggregates parses SELECT targets and extracts SUM/COUNT with CASE expressions.

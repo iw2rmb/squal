@@ -20,7 +20,7 @@ func TestPackageDocMentionsPlanAndFailure(t *testing.T) {
 	if !ok {
 		t.Fatalf("package decomposition not found")
 	}
-	dp := doc.New(p, "github.com/iw2rmb/squal/sql/reuse/decomposition", 0)
+	dp := doc.New(p, "github.com/iw2rmb/squall/sql/reuse/decomposition", 0)
 	docText := strings.ToLower(dp.Doc)
 
 	if !strings.Contains(docText, "plan structure") {

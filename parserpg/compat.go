@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/iw2rmb/squal/parser"
+	"github.com/iw2rmb/squall/parser"
 )
 
 var (

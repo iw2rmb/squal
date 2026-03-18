@@ -3,7 +3,7 @@ package graph
 import (
 	"testing"
 
-	"github.com/iw2rmb/squal/parser"
+	"github.com/iw2rmb/squall/parser"
 )
 
 // mockParser implements parser.Parser without parserpg-specific behavior.

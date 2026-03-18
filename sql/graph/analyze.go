@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/iw2rmb/squal/parser"
+	"github.com/iw2rmb/squall/parser"
 )
 
 // FindDependencies finds queries that this query could depend on.

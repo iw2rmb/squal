@@ -3,7 +3,7 @@ package graph
 import (
 	"testing"
 
-	"github.com/iw2rmb/squal/sql/internal/boundary"
+	"github.com/iw2rmb/squall/sql/internal/boundary"
 )
 
 func TestImportBoundary(t *testing.T) {

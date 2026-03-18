@@ -3,7 +3,7 @@ package graph
 import (
 	"sync"
 
-	"github.com/iw2rmb/squal/parser"
+	"github.com/iw2rmb/squall/parser"
 )
 
 // QueryGraph stores queries, their dependencies, and table indexes.

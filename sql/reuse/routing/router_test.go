@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iw2rmb/squal/parser"
+	"github.com/iw2rmb/squall/parser"
 )
 
 type mockParser struct {

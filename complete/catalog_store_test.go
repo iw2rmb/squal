@@ -3,7 +3,7 @@ package complete
 import (
 	"testing"
 
-	"github.com/iw2rmb/squal/core"
+	"github.com/iw2rmb/squall/core"
 )
 
 func TestCatalogInit(t *testing.T) {

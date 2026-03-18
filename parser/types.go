@@ -3,7 +3,7 @@ package parser
 import (
 	"time"
 
-	"github.com/iw2rmb/squal/core"
+	"github.com/iw2rmb/squall/core"
 )
 
 // QueryMetadata contains extracted information from a SQL query.
