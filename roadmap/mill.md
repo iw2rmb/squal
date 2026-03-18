@@ -106,7 +106,7 @@ Legend: [ ] todo, [x] done.
     2. Run `go test ./...`.
   - Reasoning: high
 
-- [ ] 3.1 Extract query decomposition package to Squall reuse module
+- [x] 3.1 Extract query decomposition package to Squall reuse module
   - Repository: `squall`
     1. Implement `sql/reuse/decomposition` from Mill decomposition package with `squal/parser`-only parser dependency.
     2. Replace Mill-specific identifiers with Squall-neutral value types.
