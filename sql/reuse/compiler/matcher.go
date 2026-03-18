@@ -147,7 +147,7 @@ type ComponentMatcher struct {
 // NewComponentMatcher creates a new component matcher
 func NewComponentMatcher() *ComponentMatcher {
 	return &ComponentMatcher{
-		enableSupersetMatch: true, // Enable superset matching by default in Phase 4-2.3
+		enableSupersetMatch: true, // Superset matching enabled by default
 		minSavingsThreshold: 0.0,
 	}
 }
@@ -338,14 +338,11 @@ func (cm *ComponentMatcher) generateExecutionPlan(strategy *ReuseStrategy) *Exec
 
 // LoadComponentsFromStorage loads cached components from persistent storage
 func (cm *ComponentMatcher) LoadComponentsFromStorage(storage interface{}) error {
-	// For now, we'll implement lazy loading - components are loaded when needed
-	// during FindReusableComponents. This is a simplified approach that doesn't
-	// require exposing internal storage details.
+	// Lazy loading: components are loaded on demand during FindReusableComponents.
+	// This keeps matcher logic detached from storage internals.
 
-	// In a full implementation, we'd iterate through all stored components
-	// and add them to the matcher's component index for faster lookup.
-	// For this phase, we'll rely on the storage layer to provide components
-	// during the matching process.
+	// A more eager approach could pre-index all stored components here.
+	// Current contract leaves that decision to the storage integration layer.
 
 	return nil
 }
