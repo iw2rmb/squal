@@ -91,7 +91,7 @@ Legend: [ ] todo, [x] done.
     2. Run `go test ./...`.
   - Reasoning: xhigh
 
-- [ ] 2.2 Extract replication snapshot export/import primitives into Squall
+- [x] 2.2 Extract replication snapshot export/import primitives into Squall
   - Repository: `squall`
     1. Implement snapshot runtime package `sql/runtime/pg/snapshot` with `ExportWithSlot`, `Import`, and `DropSlot`.
     2. Keep slot lifecycle APIs explicit and avoid Mill logging/metrics dependencies.
